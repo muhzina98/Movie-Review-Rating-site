@@ -111,26 +111,10 @@ const userLogin = async(req,res)=>{
 
     }
 }
-const userLogout = async (req, res) => {
-  try {
-    // Clear the token cookie
-    res.cookie('token', '', {
-      httpOnly: true,
-      expires: new Date(0), // set expiration to past date
-      secure: process.env.NODE_ENV === "PRODUCTION",
-      sameSite: "Strict"
-    });
-
-    return res.status(200).json({ message: "Logout successful" });
-  } 
-  catch (error) {
-    console.log(error);
-    return res.status(error.status || 500).json({ error: error.message || "Internal server error" });
-  }
-};
 
 
 
 
 
-module.exports = { userRegister,userLogin,userLogout }
+
+module.exports = { userRegister,userLogin}
