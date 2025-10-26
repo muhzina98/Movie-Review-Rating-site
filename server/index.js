@@ -4,12 +4,14 @@ require('dotenv').config()
 const port = process.env.PORT;
 const connectDatabase = require('./config/dbConnection')
 const router = require('./routes/midRoute')
+const cookieParser =require('cookie-parser')
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
 connectDatabase()
 
 app.use(express.json())
+app.use(cookieParser())
 
 
 
