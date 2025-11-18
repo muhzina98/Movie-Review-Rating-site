@@ -5,13 +5,26 @@ const port = process.env.PORT;
 const connectDatabase = require('./config/dbConnection')
 const router = require('./routes/midRoute')
 const cookieParser =require('cookie-parser')
+const cors= require('cors')
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
 connectDatabase()
 
-app.use(express.json())
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true
+  })
+);
+
+
+
+
 app.use(cookieParser())
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
+
 
 
 

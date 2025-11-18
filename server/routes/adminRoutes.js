@@ -1,23 +1,38 @@
 const express = require('express')
 const adminRouter =  express.Router()
 const authAdmin = require('../middlewares/authAdmin');
-const { getAllUsers,deleteUser, createMovie, getAllMovies, updateMovie, deleteMovie, getReviewsByMovie, deleteReview } = require('../controllers/adminController');
+const { getAllUsers,deleteUser, createMovie, getAllMovies, updateMovie, deleteMovie, getReviewsByMovie, deleteReview, getMovieById, getDashboardStats, toggleUserPrime } = require('../controllers/adminController');
 
-
+const upload =require('../middlewares/multer')
 
 
 //http://localhost:3001/api/admin
 
 
 adminRouter.get('/allusers', authAdmin, getAllUsers);
+
+adminRouter.patch("/users/:id/prime", authAdmin, toggleUserPrime);
+
 // deleteUser-admin
 adminRouter.delete('/delete/:userId',authAdmin,deleteUser);
 
 //movie
 
-adminRouter.post('/movies', authAdmin, createMovie);
+adminRouter.post('/movies', authAdmin,upload.fields([
+    { name: 'posterUrl', maxCount: 1 },
+    { name: 'trailerUrl', maxCount: 1 }
+  ]), createMovie);
+
 adminRouter.get('/allmovies', authAdmin, getAllMovies);
- adminRouter.patch('/updatemovie/:id', authAdmin, updateMovie);
+
+adminRouter.get("/movies/:id", authAdmin, getMovieById);
+
+
+ adminRouter.patch('/updatemovie/:id', authAdmin,upload.fields([
+    { name: "posterUrl", maxCount: 1 },
+    { name: "trailerUrl", maxCount: 1 },
+  ]), updateMovie);
+  
 adminRouter.delete('/deletemovie/:id', authAdmin, deleteMovie);
 
 //Review
@@ -25,10 +40,8 @@ adminRouter.delete('/deletemovie/:id', authAdmin, deleteMovie);
 adminRouter.get('/allReviews/:movieId',authAdmin,getReviewsByMovie)
 adminRouter.delete('/deletereview/:id',authAdmin,deleteReview)
 
-
-
-
-
+//dashBoard status
+adminRouter.get("/stats", authAdmin, getDashboardStats);
 
 
 

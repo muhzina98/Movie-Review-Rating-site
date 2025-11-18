@@ -14,10 +14,16 @@ const authAdmin =  (req,res,next)=>{
              return res.status(401).json({error:"User not authorized"})
         }
         if(decodedToken.role !="admin"){
-              return res.status(401).json({error:"User not authorized"})
+              return res.status(401).json({error:"Access denied. Admin only"})
    
         }
-         req.user=decodedToken
+         req.user = {
+      id: decodedToken.id || decodedToken._id,
+      _id: decodedToken.id || decodedToken._id,
+      email: decodedToken.email,
+      role: decodedToken.role,
+    };
+
 
         next()
     } catch (error) {

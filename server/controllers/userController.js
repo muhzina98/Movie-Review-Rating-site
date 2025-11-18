@@ -4,6 +4,9 @@ const Review = require('../models/reviewModel')
 const bcrypt = require('bcrypt')
 const createToken = require('../utils/generateToken')
 const updateMovieStats = require('../helpers/updateMovieStats')
+
+const {cloudinaryInstances} = require('../config/cloudinary')
+const upload = require('../middlewares/multer')
 const userRegister = async (req, res) => {
     //connect to DB
 
@@ -14,7 +17,7 @@ const userRegister = async (req, res) => {
         const ADMIN_EMAILS = ['admin@example.com'];
 
          //take user details from request
-        const { name, email, password,avathar } = req.body || {}
+        const { name, email, password} = req.body || {}
        
         //validation
         if (!name || !email || !password) {
@@ -26,6 +29,11 @@ const userRegister = async (req, res) => {
         if (password.length < 6) {
             return res.status(400).json({ message: 'Password must be at least 6 characters' });
         }
+        
+        const file = req.file
+
+        const cloudinaryResponse= await cloudinaryInstances.uploader.upload(file.path)
+        console.log(cloudinaryResponse)
 
 
         //check if user exist
@@ -43,7 +51,7 @@ const userRegister = async (req, res) => {
 
 
         //user creation
-        const newUser=new User({name,email,password:hashedPassword,avathar,role})
+        const newUser=new User({name,email,password:hashedPassword,avathar:cloudinaryResponse.url,role})
         const savedUser= await newUser.save()
 
         //send response-created user
@@ -94,16 +102,26 @@ const userLogin = async(req,res)=>{
     const userObject = userExist.toObject();
     delete userObject.password;
     //create Token
-    const token =createToken(userExist._id,userExist.role)
-    res.cookie('token',
-        token,
-        {
-            httpOnly:true,
-            secure:process.env.NODE_ENV==="PRODUCTION",
-            sameSite:"Strict",
-            maxAge:60*60*1000
+    const token =createToken(userExist._id,userExist.email,userExist.role)
+    // res.cookie('token',
+    //     token,
+    //     {
+    //         httpOnly:true,
+    //         secure:process.env.NODE_ENV==="PRODUCTION",
+    //          sameSite:"Strict",
+    //         maxAge:60*60*1000
 
-        })
+    //      })
+
+    res.cookie("token", token, {
+  httpOnly: true,
+  secure: false, 
+  sameSite: "lax", 
+  path: "/",
+  maxAge: 60 * 60 * 1000,
+});
+
+      
         return res.status(200).json({message:"Login Successful",user:userObject})
 
 
@@ -128,35 +146,63 @@ const checkUser =async(req,res)=>{
         
     }
 }
-const userProfile = async(req,res)=>{
+const userProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-    try {
-        
-        const userId =req.user.id
-        //field projection
-        const userData = await User.findById(userId).select("-password")
-        res.json({data:userData})
-    } catch (error) {
-         console.log(error);
+    const user = await User.findById(userId).select("-password");
 
-        res.status(error.status|| 500).json({error:error.message||"internal server error"})
-        
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-}
-const updateUser = async(req,res)=>{
-    try {
-        const {name,email,password,avathar} = req.body|| {}
-        const userId = req.user.id
-         const userData = await User.findByIdAndUpdate(userId,{name,email,password,avathar},{new:true})
-         res.json({data:userData})
-        
-    } catch (error) {
-        console.log(error)
-        res.status(error.status||500).json({error:error.message||"Internal server error"})
-        
+    res.status(200).json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avathar: user.avathar ? `${process.env.BASE_URL}/${user.avathar}` : null,
+      }
+    });
+
+  } catch (error) {
+    console.error("PROFILE ERROR:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const updateUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body || {};
+    const userId = req.user.id;
+    let updateFields = { name, email };
+
+    //  Handle avatar upload if exists
+    if (req.file) {
+      updateFields.avathar = `/uploads/${req.file.filename}`;
     }
-}
+
+    // ✅Re-hash password only if provided
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      updateFields.password = hashedPassword;
+    }
+
+    // Update user in DB
+    const userData = await User.findByIdAndUpdate(userId, updateFields, {
+      new: true,
+    }).select("-password");
+
+    res.json({ data: userData });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(error.status || 500)
+      .json({ error: error.message || "Internal server error" });
+  }
+};
  //logout
  const logout = async(req,res)=>{
     try {
@@ -171,13 +217,16 @@ const updateUser = async(req,res)=>{
     }
  }
 
+ 
+
+
  //add Review
 
  const addReview = async(req,res)=>{
 
     try {
         const  userId =req.user.id
-        const {movieId,rating,title,body} = req.body
+        const {movieId,rating,comment} = req.body
         if(!movieId || !rating){
 
             return res.status(400).json({error: "MovieId and rating are required"})
@@ -198,7 +247,7 @@ const updateUser = async(req,res)=>{
 
         //create a new review
 
-        const newReview = new Review({ movie: movieId, author: userId,rating,title, body})
+        const newReview = new Review({ movie: movieId, author: userId,rating,comment})
         await newReview .save()
 
         //update movie status
@@ -223,29 +272,57 @@ const updateUser = async(req,res)=>{
     const userId = req.user.id;
     const reviewId = req.params.id;
 
-    const {  rating, title, body } = req.body;
+    const {  rating, comment } = req.body;
 
     // Find the review by id and author
     const review = await Review.findById(reviewId);
     if (!review) {
       return res.status(404).json({ error: "Review not found" });
     }
-    
+
+    // Prevent editing someone else's review
+    if (review.author.toString() !== userId) {
+      return res.status(403).json({ error: "Not allowed to edit this review" });
+    }
 
     // Update review fields
     review.rating = rating || review.rating;
-    review.title = title || review.title;
-    review.body = body || review.body;
+    review.comment = comment || review.comment;
 
     await review.save();
+    const updatedReview = await Review.findById(reviewId)
+  .populate("author", "name email"); 
 
     // Update movie stats
     await updateMovieStats(review.movie);
 
-    res.status(200).json({ message: "Review updated successfully", review });
+    res.status(200).json({ message: "Review updated successfully", review:updatedReview });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+ const getReviewsByMovie = async (req, res) => {
+  try {
+    const reviews = await Review.find({ movie: req.params.movieId })
+      .populate("author", "name");
+
+    res.json({ reviews });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch reviews" });
+  }
+};
+const getMyReviews = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const reviews = await Review.find({ author: userId })
+      .populate("movie", "title posterUrl");
+
+    res.json({ reviews });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch user reviews" });
   }
 };
 
@@ -254,4 +331,6 @@ const updateUser = async(req,res)=>{
 
 
 
-module.exports = { userRegister,userLogin,checkUser,userProfile,updateUser,logout,addReview,updateReview}
+
+
+module.exports = { userRegister,userLogin,checkUser,userProfile,updateUser,logout,addReview,updateReview,getReviewsByMovie,getMyReviews}
