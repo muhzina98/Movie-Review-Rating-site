@@ -1,0 +1,102 @@
+import { useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+
+const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
+
+const RegisterPage = () => {
+    const navigate = useNavigate();
+    const [form, setForm] = useState({ name: "", email: "", password: "", avathar: "" });
+    const [message, setMessage] = useState("");
+
+    const change = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const submit = async (e) => {
+        e.preventDefault();
+
+        const fd = new FormData();
+        fd.append("name", form.name);
+        fd.append("email", form.email);
+        fd.append("password", form.password);
+        fd.append("avathar", form.avathar); 
+        try {
+            const res = await axios.post(`${BASE_URL}/api/user/register`, fd, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            setMessage(res.data.message || "Registered");
+
+            setTimeout(() => navigate("/login"), 800);
+        } catch (err) {
+            setMessage(err.response?.data?.message || "Failed");
+        }
+    };
+
+    return (
+        <div className="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900 transition">
+            <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+
+                <h2 className="text-3xl font-bold text-center mb-6 text-gray-900 dark:text-white">
+                    Create Account
+                </h2>
+
+                {message && (
+                    <p className="text-center mb-4 text-sm font-medium text-red-500 dark:text-red-400">
+                        {message}
+                    </p>
+                )}
+
+                <form onSubmit={submit} className="space-y-4">
+
+                    <input
+                        name="name"
+                        placeholder="Full Name"
+                        onChange={change}
+                        className="w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200 border border-gray-300 dark:border-gray-600 focus:ring focus:ring-yellow-400 outline-none"
+                    />
+
+                    <input
+                        name="email"
+                        placeholder="Email"
+                        onChange={change}
+                        className="w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200 border border-gray-300 dark:border-gray-600 focus:ring focus:ring-yellow-400 outline-none"
+                    />
+
+                    <input
+                        name="password"
+                        type="password"
+                        placeholder="Password (min 6 char)"
+                        onChange={change}
+                        className="w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200 border border-gray-300 dark:border-gray-600 focus:ring focus:ring-yellow-400 outline-none"
+                    />
+
+                    <input
+                        name="avathar"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setForm({ ...form, avathar: e.target.files[0] })}
+                        className="w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200 border border-gray-300 dark:border-gray-600 focus:ring focus:ring-yellow-400 outline-none"
+                    />
+
+                    <button
+                        type="submit"
+                        className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 rounded-lg text-black font-semibold transition"
+                    >
+                        Register
+                    </button>
+                </form>
+
+                <div className="mt-4 text-center text-sm text-gray-700 dark:text-gray-300">
+                    Already have an account?
+                    <Link to="/login" className="text-blue-600 dark:text-blue-400 font-medium ml-1 hover:underline">
+                        Login
+                    </Link>
+                </div>
+
+            </div>
+        </div>
+    );
+};
+
+export default RegisterPage;
