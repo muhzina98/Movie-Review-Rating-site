@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 require('dotenv').config()
-const port = process.env.PORT;
+const port = process.env.PORT  || 3001;
 const connectDatabase = require('./config/dbConnection')
 const router = require('./routes/midRoute')
 const cookieParser =require('cookie-parser')
@@ -13,7 +13,7 @@ connectDatabase()
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173","https://movie-review-rating-site.onrender.com"],
     credentials: true
   })
 );
