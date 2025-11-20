@@ -8,14 +8,24 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://movie-review-rating-site-1.onrender.com",
+  "https://movie-review-rating-site.onrender.com"
+];
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://movie-review-rating-site-1.onrender.com",
-    "https://movie-review-rating-site.onrender.com"
-  ],
-  credentials: true
+  origin: allowedOrigins,
+  credentials: true,
+  methods: "GET,POST,PUT,PATCH,DELETE",
+  allowedHeaders: "Content-Type, Authorization"
 }));
+
+ 
 
 
 app.use(cookieParser());
