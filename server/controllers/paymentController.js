@@ -23,8 +23,8 @@ const createCheckoutSession = async (req, res) => {
 
     // Ensure CLIENT_URL is provided and is an absolute URL
     const clientBase = (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "");
-    success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-     cancel_url: `${process.env.FRONTEND_URL}/payment-failed`,
+    success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`;
+     cancel_url: `${process.env.FRONTEND_URL}/payment-failed`;
 
 
     console.log("Creating Stripe session", { userId, successUrl, cancelUrl });
