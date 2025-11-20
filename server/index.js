@@ -7,14 +7,7 @@ const router = require('./routes/midRoute')
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://movie-review-rating-site-1.onrender.com",
-    "https://movie-review-rating-site.onrender.com"
-  ],
-  credentials: true
-}));
+
 app.use(cors({
   origin: [
     "http://localhost:5173",
