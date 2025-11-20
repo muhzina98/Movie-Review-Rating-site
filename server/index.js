@@ -11,12 +11,22 @@ app.get('/', (req, res) => res.send('Hello World!'));
 
 connectDatabase()
 
-app.use(
-  cors({
-    origin: ["http://localhost:5173","https://movie-review-rating-site.onrender.com"],
-    credentials: true
-  })
-);
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://movie-review-rating-site-1.onrender.com",
+  "https://movie-review-rating-site.onrender.com"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed for this origin: " + origin));
+    }
+  },
+  credentials: true
+}));
 
 
 
