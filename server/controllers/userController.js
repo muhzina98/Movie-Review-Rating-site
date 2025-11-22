@@ -157,7 +157,7 @@ const userProfile = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        avathar: user.avathar ? `${process.env.BASE_URL}/${user.avathar}` : null,
+        avathar: user.avathar 
       }
     });
 
@@ -169,35 +169,52 @@ const userProfile = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body || {};
     const userId = req.user.id;
+    const { name, email, password } = req.body;
     let updateFields = { name, email };
 
-    //  Handle avatar upload if exists
+    // Upload avatar if sent
     if (req.file) {
-      updateFields.avathar = `/uploads/${req.file.filename}`;
+      const cloudinaryResponse = await cloudinaryInstances.uploader.upload(
+        req.file.path
+      );
+      updateFields.avathar = cloudinaryResponse.secure_url;
     }
 
-    // ✅Re-hash password only if provided
+    // Hash new password if provided
     if (password) {
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      updateFields.password = hashedPassword;
+      updateFields.password = await bcrypt.hash(password, salt);
     }
 
-    // Update user in DB
-    const userData = await User.findByIdAndUpdate(userId, updateFields, {
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(userId, updateFields, {
       new: true,
     }).select("-password");
 
-    res.json({ data: userData });
+    // ⭐ Re-generate a NEW TOKEN after update
+    const newToken = createToken(updatedUser._id, updatedUser.email, updatedUser.role);
+
+    const isProd = process.env.NODE_ENV === "PRODUCTION";
+
+    res.cookie("token", newToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      path: "/",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.json({ user: updatedUser });
+
   } catch (error) {
-    console.log(error);
-    res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    console.log("UPDATE ERROR:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+
 //logout
 const logout = async (req, res) => {
   try {

@@ -17,7 +17,7 @@ userRouter.get('/check-user',authUser,checkUser)
 //profile
 userRouter.get('/profile',authUser,userProfile)
 //updateUser
-userRouter.patch('/update',authUser,upload.single('avathar'),updateUser)
+userRouter.patch('/update',upload.single('avathar'),authUser,updateUser)
 
 //logout
 userRouter.get('/logout',logout)
