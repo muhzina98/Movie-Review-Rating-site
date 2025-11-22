@@ -4,40 +4,26 @@ import axios from "axios";
 import UserProfile from "../Components/Userprofile.jsx";
 import { useSearch } from "../context/SearchContext.jsx";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
 
 const UserDashboard = () => {
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
-  );
-
+  const { user } = useAuth();
   const [movies, setMovies] = useState([]);
   const [filteredMovies, setFilteredMovies] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState("All");
   const [genres, setGenres] = useState([]);
-
+  const [selectedGenre, setSelectedGenre] = useState("All");
   const [myReviews, setMyReviews] = useState([]);
 
   const { searchQuery } = useSearch();
   const navigate = useNavigate();
 
-  //  Pagination State
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const moviesPerPage = 8;
 
-  // Fetch user profile
-  useEffect(() => {
-    axios
-      .get(`${BASE_URL}/api/user/profile`, { withCredentials: true })
-      .then((res) => {
-        setUser(res.data.user);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-      })
-      .catch((err) => console.error("Profile fetch error:", err));
-  }, []);
-
-  // Fetch user reviews
+  // Fetch reviews
   useEffect(() => {
     axios
       .get(`${BASE_URL}/api/user/my-reviews`, { withCredentials: true })
@@ -50,20 +36,19 @@ const UserDashboard = () => {
     axios
       .get(`${BASE_URL}/api/movie`)
       .then((res) => {
-        const data = res.data || [];
-        setMovies(data);
-        setFilteredMovies(data);
+        setMovies(res.data);
+        setFilteredMovies(res.data);
 
         const uniqueGenres = [
           "All",
-          ...new Set(data.flatMap((m) => m.genres || [])),
+          ...new Set(res.data.flatMap((m) => m.genres || [])),
         ];
         setGenres(uniqueGenres);
       })
-      .catch((err) => console.error("Error fetching movies:", err));
+      .catch((err) => console.error("Movies fetch error:", err));
   }, []);
 
-  // Apply filters
+  // Filter movies
   useEffect(() => {
     let filtered = movies;
 
@@ -71,36 +56,36 @@ const UserDashboard = () => {
       filtered = filtered.filter((m) => m.genres?.includes(selectedGenre));
     }
 
-    if (searchQuery?.trim() !== "") {
+    if (searchQuery.trim() !== "") {
       filtered = filtered.filter((m) =>
         m.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     setFilteredMovies(filtered);
-    setCurrentPage(1); 
+    setCurrentPage(1);
+  }, [movies, selectedGenre, searchQuery]);
 
-  }, [selectedGenre, searchQuery, movies]);
-
-  //  Pagination Calculations
+  // Pagination logic
   const indexOfLastMovie = currentPage * moviesPerPage;
   const indexOfFirstMovie = indexOfLastMovie - moviesPerPage;
   const currentMovies = filteredMovies.slice(indexOfFirstMovie, indexOfLastMovie);
   const totalPages = Math.ceil(filteredMovies.length / moviesPerPage);
 
+  if (!user) return null;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-6 py-10">
       <div className="max-w-6xl mx-auto space-y-10">
 
-        {/* Welcome */}
         <h1 className="text-3xl font-bold text-center">
-          🎬 Welcome, {user?.name?.split(" ")[0] || "User"}!
+          🎬 Welcome, {user.name.split(" ")[0]}!
         </h1>
 
-        {/* User Profile */}
-        <UserProfile user={user} setUser={setUser} BASE_URL={BASE_URL} />
+        {/* Profile */}
+        <UserProfile BASE_URL={BASE_URL} />
 
-        {/* Movie Filters */}
+        {/* Movies */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
           <div className="flex items-center gap-3 mb-3">
             <Filter className="text-yellow-400" size={22} />
@@ -113,10 +98,10 @@ const UserDashboard = () => {
               <button
                 key={genre}
                 onClick={() => setSelectedGenre(genre)}
-                className={`px-3 py-1 rounded-full text-sm font-medium border transition ${
+                className={`px-3 py-1 rounded-full text-sm border transition ${
                   selectedGenre === genre
                     ? "bg-yellow-500 text-black"
-                    : "bg-transparent border-gray-400 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-yellow-500 hover:text-black"
+                    : "border-gray-400 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-yellow-500 hover:text-black"
                 }`}
               >
                 {genre}
@@ -126,39 +111,32 @@ const UserDashboard = () => {
 
           {/* Movie Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {currentMovies.length > 0 ? (
-              currentMovies.map((movie) => (
-                <div
-                  key={movie._id}
-                  onClick={() => navigate(`/movie/${movie._id}`)}
-                  className="cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden shadow-md hover:scale-[1.02] transition-transform"
-                >
-                  <img
-                    src={movie.posterUrl}
-                    alt={movie.title}
-                    className="w-full h-40 object-cover"
-                  />
-                  <div className="p-2 text-sm">
-                    <h4 className="font-semibold truncate">{movie.title}</h4>
-                    <p className="text-gray-500 dark:text-gray-400 text-xs">
-                      {movie.genres?.join(", ")}
-                    </p>
-                  </div>
+            {currentMovies.map((movie) => (
+              <div
+                key={movie._id}
+                onClick={() => navigate(`/movie/${movie._id}`)}
+                className="cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-lg shadow-md hover:scale-105 transition"
+              >
+                <img
+                  src={movie.posterUrl}
+                  className="w-full h-40 object-cover"
+                />
+                <div className="p-2">
+                  <h4 className="font-semibold truncate">{movie.title}</h4>
+                  <p className="text-gray-500 text-xs">
+                    {movie.genres?.join(", ")}
+                  </p>
                 </div>
-              ))
-            ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-sm text-center col-span-full">
-                No movies found.
-              </p>
-            )}
+              </div>
+            ))}
           </div>
 
-          {/*  Pagination Controls */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center mt-6 gap-2">
               <button
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage((prev) => prev - 1)}
+                onClick={() => setCurrentPage(currentPage - 1)}
                 className="px-3 py-1 bg-gray-300 dark:bg-gray-700 rounded disabled:opacity-40"
               >
                 Prev
@@ -180,7 +158,7 @@ const UserDashboard = () => {
 
               <button
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((prev) => prev + 1)}
+                onClick={() => setCurrentPage(currentPage + 1)}
                 className="px-3 py-1 bg-gray-300 dark:bg-gray-700 rounded disabled:opacity-40"
               >
                 Next
@@ -189,7 +167,7 @@ const UserDashboard = () => {
           )}
         </div>
 
-        {/* My Reviews Section */}
+        {/* My Reviews */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
           <div className="flex items-center gap-3 mb-3">
             <Star className="text-yellow-400" size={22} />
@@ -197,9 +175,7 @@ const UserDashboard = () => {
           </div>
 
           {myReviews.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
-              You haven’t reviewed any movies yet.
-            </p>
+            <p className="text-gray-500 text-sm">No reviews yet.</p>
           ) : (
             <div className="space-y-4">
               {myReviews.map((rev) => (
@@ -209,15 +185,12 @@ const UserDashboard = () => {
                 >
                   <img
                     src={rev.movie.posterUrl}
-                    alt={rev.movie.title}
                     className="w-20 h-28 object-cover rounded"
                   />
 
                   <div>
-                    <h4 className="font-semibold text-lg">
-                      {rev.movie.title}
-                    </h4>
-                    <p className="text-sm text-yellow-500">⭐ {rev.rating}</p>
+                    <h4 className="font-semibold">{rev.movie.title}</h4>
+                    <p className="text-yellow-500 text-sm">⭐ {rev.rating}</p>
                     <p className="text-gray-600 dark:text-gray-300">
                       {rev.comment}
                     </p>
@@ -226,8 +199,8 @@ const UserDashboard = () => {
               ))}
             </div>
           )}
-        </div>
 
+        </div>
       </div>
     </div>
   );
