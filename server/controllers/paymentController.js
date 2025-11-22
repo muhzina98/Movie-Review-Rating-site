@@ -1,36 +1,31 @@
+// controllers/paymentController.js
 const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const User = require("../models/userModel");
 
 const createCheckoutSession = async (req, res) => {
   try {
-    const userId = req.user?._id || req.user?.id;
-    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const userId = req.user.id;
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Create Stripe customer if not exists
+    // create stripe customer if not exists
     if (!user.stripeCustomerId) {
       const customer = await stripe.customers.create({
-        email: user.email,
         name: user.name,
+        email: user.email,
       });
       user.stripeCustomerId = customer.id;
       await user.save();
     }
 
-    // Build final URLs
-    const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
-
-    const successUrl = `${frontendUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${frontendUrl}/payment-failed`;
-
-    console.log("Creating Stripe session", { successUrl, cancelUrl });
+    const frontendUrl = process.env.FRONTEND_URL.replace(/\/$/, "");
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
       mode: "payment",
+      payment_method_types: ["card"],
+      customer: user.stripeCustomerId,
       line_items: [
         {
           price_data: {
@@ -39,27 +34,28 @@ const createCheckoutSession = async (req, res) => {
             unit_amount: 100000,
           },
           quantity: 1,
-        },
+        }
       ],
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      customer: user.stripeCustomerId,
-      metadata: {
-        userId: user._id.toString(),
-      },
+      success_url: `${frontendUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/payment-cancelled`,
+      metadata: { userId: user._id.toString() }
     });
 
     res.json({ url: session.url });
   } catch (err) {
-    console.error("createCheckoutSession error:", err);
-    res.status(500).json({ message: err.message || "Failed to create checkout session" });
+    console.log("Checkout Error:", err);
+    res.status(500).json({ message: "Payment session failed" });
   }
 };
+
 
 const verifyCheckoutSession = async (req, res) => {
   try {
     const sessionId = req.query.session_id;
-    if (!sessionId) return res.status(400).json({ message: "No session_id provided" });
+
+    if (!sessionId) {
+      return res.status(400).json({ message: "Missing session_id" });
+    }
 
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
@@ -67,25 +63,24 @@ const verifyCheckoutSession = async (req, res) => {
       return res.status(400).json({ message: "Payment not completed" });
     }
 
-    const userId = session.metadata?.userId;
-    if (!userId) {
-      return res.status(400).json({ message: "Invalid metadata" });
-    }
-
+    const userId = session.metadata.userId;
     const user = await User.findById(userId);
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    // update user to prime
     user.isPrime = true;
     user.primeActivatedAt = new Date();
-    user.subscriptionId = session.id;
     user.subscriptionStatus = "active";
+    user.subscriptionId = session.id;
 
     await user.save();
 
     res.json({ message: "Prime Activated", user });
+
   } catch (err) {
-    console.error("verifyCheckoutSession error:", err);
-    res.status(500).json({ message: "Failed to verify session" });
+    console.log("Verify Error:", err);
+    res.status(500).json({ message: "Verification error" });
   }
 };
 

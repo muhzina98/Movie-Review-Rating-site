@@ -3,8 +3,8 @@ import { Camera, Edit3, Save, Crown } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
-const UserProfile = ({ BASE_URL }) => {
-  const { user, setUser } = useAuth();
+const UserProfile = () => {
+  const { user, setUser, BASE_URL } = useAuth();
 
   const fileInputRef = useRef(null);
 
@@ -14,11 +14,12 @@ const UserProfile = ({ BASE_URL }) => {
   const [password, setPassword] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // ⭐ Correct avatar logic
-  const profilePic = selectedFile
-    ? URL.createObjectURL(selectedFile)
-    : user?.avathar ||
-      "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+  // Live preview: if new file selected, show that, else backend URL
+  const profilePic =
+    selectedFile
+      ? URL.createObjectURL(selectedFile)
+      : user?.avathar ||
+        "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
   const handlePrime = async () => {
     try {
@@ -35,9 +36,7 @@ const UserProfile = ({ BASE_URL }) => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-    }
+    if (file) setSelectedFile(file);
   };
 
   const handleSaveProfile = async (e) => {
@@ -49,18 +48,20 @@ const UserProfile = ({ BASE_URL }) => {
       if (password) formData.append("password", password);
       if (selectedFile) formData.append("avathar", selectedFile);
 
-      const res = await axios.patch(`${BASE_URL}/api/user/update`, formData, {
-        withCredentials: true,
-      });
+      const res = await axios.patch(
+        `${BASE_URL}/api/user/update`,
+        formData,
+        { withCredentials: true }
+      );
 
       const updatedUser = res.data.user;
-
       setUser(updatedUser);
-
       setIsEditing(false);
       setPassword("");
+      setSelectedFile(null);
       alert("Profile updated ✔");
     } catch (err) {
+      console.error(err);
       alert("Failed to update profile ❌");
     }
   };
@@ -69,20 +70,19 @@ const UserProfile = ({ BASE_URL }) => {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 flex flex-col md:flex-row gap-10 items-center md:items-start">
+      {/* Profile Image */}
       <div className="relative w-40 h-40">
         <img
           src={profilePic}
           alt="Profile"
           className="w-40 h-40 rounded-full object-cover border-4 border-yellow-400 shadow-md"
         />
-
         <button
           onClick={() => fileInputRef.current.click()}
           className="absolute bottom-2 right-2 bg-yellow-500 hover:bg-yellow-600 p-2 rounded-full shadow-md"
         >
           <Camera size={18} className="text-black" />
         </button>
-
         <input
           type="file"
           ref={fileInputRef}
@@ -92,10 +92,11 @@ const UserProfile = ({ BASE_URL }) => {
         />
       </div>
 
+      {/* User Info */}
       <div className="flex-1 text-center md:text-left">
         {!isEditing ? (
           <>
-            <h2 className="text-2xl font-semibold mb-1 flex items-center gap-2">
+            <h2 className="text-2xl font-semibold mb-1 flex items-center gap-2 justify-center md:justify-start">
               {user.name}
               {user.isPrime && (
                 <span className="flex items-center gap-1 bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-medium">
@@ -104,8 +105,7 @@ const UserProfile = ({ BASE_URL }) => {
               )}
             </h2>
 
-            <p className="text-gray-500">{user.email}</p>
-
+            <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
             <span className="mt-3 px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-full text-sm font-semibold inline-block">
               {user.role?.toUpperCase()}
             </span>
@@ -121,13 +121,16 @@ const UserProfile = ({ BASE_URL }) => {
 
             <button
               onClick={() => setIsEditing(true)}
-              className="mt-5 bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg text-black font-semibold flex items-center gap-2"
+              className="mt-5 bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg text-black font-semibold flex items-center gap-2 mx-auto md:mx-0 justify-center"
             >
               <Edit3 size={16} /> Edit Profile
             </button>
           </>
         ) : (
-          <form onSubmit={handleSaveProfile} className="space-y-4 w-full max-w-sm">
+          <form
+            onSubmit={handleSaveProfile}
+            className="space-y-4 w-full max-w-sm mx-auto md:mx-0"
+          >
             <div>
               <label className="block text-sm mb-1">Name</label>
               <input
@@ -166,10 +169,13 @@ const UserProfile = ({ BASE_URL }) => {
               >
                 <Save size={16} /> Save
               </button>
-
               <button
                 type="button"
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setIsEditing(false);
+                  setPassword("");
+                  setSelectedFile(null);
+                }}
                 className="bg-gray-400 hover:bg-gray-500 px-4 py-2 rounded-lg text-white"
               >
                 Cancel

@@ -11,7 +11,6 @@ const cors = require('cors')
 const allowedOrigins = [
   "http://localhost:5173",
   "https://movie-review-rating-site-1.onrender.com",
-  "https://movie-review-rating-site.onrender.com"
 ];
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", "true");

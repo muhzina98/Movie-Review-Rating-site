@@ -21,12 +21,9 @@ export default function PaymentSuccess() {
       );
 
 const updatedUser = res.data.user;
-        if (updatedUser) {
-          // update local storage + auth context
-          localStorage.setItem("user", JSON.stringify(updatedUser));
+       if (updatedUser) {
           setUser(updatedUser);
         } else {
-          // fallback to re-fetch
           fetchUser();
         }
 
@@ -35,6 +32,8 @@ const updatedUser = res.data.user;
     } catch (err) {
       console.error(err);
       alert("Verification failed!");
+              navigate("/user-dashboard");
+
     }
   }
 

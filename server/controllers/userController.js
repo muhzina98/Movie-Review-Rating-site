@@ -1,25 +1,19 @@
-const User = require('../models/userModel')
-const Movie = require('../models/movieModel')
-const Review = require('../models/reviewModel')
-const bcrypt = require('bcrypt')
-const createToken = require('../utils/generateToken')
-const updateMovieStats = require('../helpers/updateMovieStats')
+const User = require('../models/userModel');
+const Movie = require('../models/movieModel');
+const Review = require('../models/reviewModel');
+const bcrypt = require('bcrypt');
+const createToken = require('../utils/generateToken');
+const updateMovieStats = require('../helpers/updateMovieStats');
+const { cloudinaryInstances } = require('../config/cloudinary');
 
-const { cloudinaryInstances } = require('../config/cloudinary')
-const upload = require('../middlewares/multer')
+// ------------------- REGISTER -------------------
 const userRegister = async (req, res) => {
-  //connect to DB
-
   try {
-
     const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
-
     const ADMIN_EMAILS = ['admin@example.com'];
 
-    //take user details from request
-    const { name, email, password } = req.body || {}
+    const { name, email, password } = req.body || {};
 
-    //validation
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
@@ -27,55 +21,54 @@ const userRegister = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email format' });
     }
     if (password.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      return res
+        .status(400)
+        .json({ message: 'Password must be at least 6 characters' });
     }
 
-    const file = req.file
-
-    const cloudinaryResponse = await cloudinaryInstances.uploader.upload(file.path)
-    console.log(cloudinaryResponse)
-
-
-    //check if user exist
-    const userExist = await User.findOne({ email })
-    if (userExist) {
-      return res.status(400).json({ message: "user already exist" })
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: 'User already exists' });
     }
 
-    //bcrypt-hash password
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(password, salt)
-    //console.log(hashedPassword)
-    //Assign role
+    let avatarUrl = undefined;
+    if (req.file) {
+      const cloudinaryResponse = await cloudinaryInstances.uploader.upload(
+        req.file.path
+      );
+      avatarUrl = cloudinaryResponse.secure_url;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const role = ADMIN_EMAILS.includes(email.toLowerCase()) ? 'admin' : 'user';
 
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      avathar: avatarUrl,
+      role,
+    });
 
-    //user creation
-    const newUser = new User({ name, email, password: hashedPassword, avathar: cloudinaryResponse.url, role })
-    const savedUser = await newUser.save()
+    const savedUser = await newUser.save();
 
-    //send response-created user
-    return res.status(201).json({ message: "user created", savedUser })
-
-
+    return res.status(201).json({ message: 'User created', user: savedUser });
   } catch (error) {
-    console.log(error)
-    res.status(error.status || 500).json({ error: error.message || "internal server error" })
-
+    console.log(error);
+    res
+      .status(error.status || 500)
+      .json({ error: error.message || 'Internal server error' });
   }
+};
 
-}
-
+// ------------------- LOGIN -------------------
 const userLogin = async (req, res) => {
-
   try {
-
     const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
+    const { email, password } = req.body || {};
 
-    //take user details from request
-    const { email, password } = req.body || {}
-
-    //validation
     if (!email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
@@ -83,97 +76,88 @@ const userLogin = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email format' });
     }
     if (password.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      return res
+        .status(400)
+        .json({ message: 'Password must be at least 6 characters' });
     }
 
-
-    //check if useris not exist
-    const userExist = await User.findOne({ email })
+    const userExist = await User.findOne({ email });
     if (!userExist) {
-      return res.status(400).json({ message: "user not exist" })
+      return res.status(400).json({ message: 'User not exist' });
     }
 
-    //password compare
     const passwordMatch = await bcrypt.compare(password, userExist.password);
     if (!passwordMatch) {
-      return res.status(401).json({ error: 'Not a Valid Password' });
+      return res.status(401).json({ error: 'Not a valid password' });
     }
 
     const userObject = userExist.toObject();
     delete userObject.password;
-    //create Token
-    const token = createToken(userExist._id, userExist.email, userExist.role)
 
+    const token = createToken(userExist._id, userExist.email, userExist.role);
 
-    const isProd = process.env.NODE_ENV === "PRODUCTION";
+    const isProd = process.env.NODE_ENV === 'production';
 
-    res.cookie("token", token, {
+    res.cookie('token', token, {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-      path: "/",
+      sameSite: isProd ? 'none' : 'lax',
+      path: '/',
       maxAge: 60 * 60 * 1000,
     });
 
-
-
-    return res.status(200).json({ message: "Login Successful", user: userObject })
-
-
-  } catch (error) {
-
-    console.log(error)
-    res.status(error.status || 500).json({ error: error.message || "internal server error" })
-
-  }
-}
-
-
-const checkUser = async (req, res) => {
-  try {
-
-    res.json({ message: "User Authorized", loggedinUser: req.user.id })
+    return res.status(200).json({ message: 'Login Successful', user: userObject });
   } catch (error) {
     console.log(error);
-
-    res.status(error.status || 500).json({ error: error.message || "internal server error" })
-
-
+    res
+      .status(error.status || 500)
+      .json({ error: error.message || 'internal server error' });
   }
-}
+};
+
+// ------------------- CHECK USER -------------------
+const checkUser = async (req, res) => {
+  try {
+    res.json({ message: 'User Authorized', loggedinUser: req.user.id });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(error.status || 500)
+      .json({ error: error.message || 'internal server error' });
+  }
+};
+
+// ------------------- PROFILE -------------------
 const userProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const user = await User.findById(userId).select("-password");
+    const user = await User.findById(userId).select('-password');
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: 'User not found' });
     }
 
-    res.status(200).json({
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avathar: user.avathar 
-      }
-    });
-
+    res.status(200).json({ user });
   } catch (error) {
-    console.error("PROFILE ERROR:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('PROFILE ERROR:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
+// ------------------- UPDATE USER -------------------
 const updateUser = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { name, email, password } = req.body;
-    let updateFields = { name, email };
+    const { name, email, password } = req.body || {};
 
-    // Upload avatar if sent
+    // Build update object safely
+    const updateFields = {};
+
+    if (name) updateFields.name = name;
+    if (email) updateFields.email = email;
+
+    // Avatar via Cloudinary
     if (req.file) {
       const cloudinaryResponse = await cloudinaryInstances.uploader.upload(
         req.file.path
@@ -181,170 +165,181 @@ const updateUser = async (req, res) => {
       updateFields.avathar = cloudinaryResponse.secure_url;
     }
 
-    // Hash new password if provided
+    // New password (if provided)
     if (password) {
       const salt = await bcrypt.genSalt(10);
       updateFields.password = await bcrypt.hash(password, salt);
     }
 
-    // Update user
     const updatedUser = await User.findByIdAndUpdate(userId, updateFields, {
       new: true,
-    }).select("-password");
+    }).select('-password');
 
-    // ⭐ Re-generate a NEW TOKEN after update
-    const newToken = createToken(updatedUser._id, updatedUser.email, updatedUser.role);
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    const isProd = process.env.NODE_ENV === "PRODUCTION";
+    const isProd = process.env.NODE_ENV === 'production';
 
-    res.cookie("token", newToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-      path: "/",
-      maxAge: 60 * 60 * 1000,
-    });
+    // 🟡 Only regenerate token if email changed
+    if (email && email !== req.user.email) {
+      const newToken = createToken(
+        updatedUser._id,
+        updatedUser.email,
+        updatedUser.role
+      );
+
+      res.cookie('token', newToken, {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 1000,
+      });
+    }
 
     res.json({ user: updatedUser });
-
   } catch (error) {
-    console.log("UPDATE ERROR:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.log('UPDATE ERROR:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-
-
-//logout
+// ------------------- LOGOUT -------------------
 const logout = async (req, res) => {
   try {
-
-    res.clearCookie('token')
-    res.json({ message: "User logout Successfully" })
-
+    res.clearCookie('token', { path: '/' });
+    res.json({ message: 'User logout Successfully' });
   } catch (error) {
-    console.log(error)
-    res.status(error.status || 500).json({ error: error.message || "Internal server error" })
-
+    console.log(error);
+    res
+      .status(error.status || 500)
+      .json({ error: error.message || 'Internal server error' });
   }
-}
+};
 
-
-
-
-//add Review
-
+// ------------------- ADD REVIEW -------------------
 const addReview = async (req, res) => {
-
   try {
-    const userId = req.user.id
-    const { movieId, rating, comment } = req.body
+    const userId = req.user.id;
+    const { movieId, rating, comment } = req.body;
+
     if (!movieId || !rating) {
-
-      return res.status(400).json({ error: "MovieId and rating are required" })
+      return res
+        .status(400)
+        .json({ error: 'MovieId and rating are required' });
     }
 
-    //check if movie exists
-    const movie = await Movie.findById(movieId)
+    const movie = await Movie.findById(movieId);
     if (!movie) {
-      return res.status(404).json({ error: "Movie not found" })
+      return res.status(404).json({ error: 'Movie not found' });
     }
 
-    //check if user already has a review
-    const existingReview = await Review.findOne({ movie: movieId, author: userId })
+    const existingReview = await Review.findOne({
+      movie: movieId,
+      author: userId,
+    });
     if (existingReview) {
-      return res.status(400).json({ error: "You have already reviewed this movie" });
-
+      return res
+        .status(400)
+        .json({ error: 'You have already reviewed this movie' });
     }
 
-    //create a new review
-
-    const newReview = new Review({ movie: movieId, author: userId, rating, comment })
-    await newReview.save()
-
-    //update movie status
+    const newReview = new Review({ movie: movieId, author: userId, rating, comment });
+    await newReview.save();
 
     await updateMovieStats(movieId);
 
     res.status(201).json({
-      message: "Review added successfully",
-      review: newReview
+      message: 'Review added successfully',
+      review: newReview,
     });
-
-
+  } catch (error) {
+    console.log(error);
+    res
+      .status(error.status || 500)
+      .json({ error: error.message || 'Internal server error' });
   }
-  catch (error) {
-    console.log(error)
-    res.status(error.status || 500).json({ error: error.message || "Internal server error" })
+};
 
-
-  }
-}
-
+// ------------------- UPDATE REVIEW -------------------
 const updateReview = async (req, res) => {
   try {
     const userId = req.user.id;
     const reviewId = req.params.id;
-
     const { rating, comment } = req.body;
 
-    // Find the review by id and author
     const review = await Review.findById(reviewId);
     if (!review) {
-      return res.status(404).json({ error: "Review not found" });
+      return res.status(404).json({ error: 'Review not found' });
     }
 
-    // Prevent editing someone else's review
     if (review.author.toString() !== userId) {
-      return res.status(403).json({ error: "Not allowed to edit this review" });
+      return res
+        .status(403)
+        .json({ error: 'Not allowed to edit this review' });
     }
 
-    // Update review fields
     review.rating = rating || review.rating;
     review.comment = comment || review.comment;
 
     await review.save();
-    const updatedReview = await Review.findById(reviewId)
-      .populate("author", "name email");
 
-    // Update movie stats
+    const updatedReview = await Review.findById(reviewId).populate(
+      'author',
+      'name email'
+    );
+
     await updateMovieStats(review.movie);
 
-    res.status(200).json({ message: "Review updated successfully", review: updatedReview });
+    res
+      .status(200)
+      .json({ message: 'Review updated successfully', review: updatedReview });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
+// ------------------- GET REVIEWS BY MOVIE -------------------
 const getReviewsByMovie = async (req, res) => {
   try {
-    const reviews = await Review.find({ movie: req.params.movieId })
-      .populate("author", "name");
+    const reviews = await Review.find({ movie: req.params.movieId }).populate(
+      'author',
+      'name'
+    );
 
     res.json({ reviews });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch reviews" });
+    res.status(500).json({ message: 'Failed to fetch reviews' });
   }
 };
+
+// ------------------- GET MY REVIEWS -------------------
 const getMyReviews = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const reviews = await Review.find({ author: userId })
-      .populate("movie", "title posterUrl");
+    const reviews = await Review.find({ author: userId }).populate(
+      'movie',
+      'title posterUrl'
+    );
 
     res.json({ reviews });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch user reviews" });
+    res.status(500).json({ message: 'Failed to fetch user reviews' });
   }
 };
 
-
-
-
-
-
-
-
-module.exports = { userRegister, userLogin, checkUser, userProfile, updateUser, logout, addReview, updateReview, getReviewsByMovie, getMyReviews }
+module.exports = {
+  userRegister,
+  userLogin,
+  checkUser,
+  userProfile,
+  updateUser,
+  logout,
+  addReview,
+  updateReview,
+  getReviewsByMovie,
+  getMyReviews,
+};
