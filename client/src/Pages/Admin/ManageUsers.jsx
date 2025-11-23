@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-
 export default function ManageUsers() {
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
@@ -15,9 +13,7 @@ export default function ManageUsers() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/admin/allusers`, {
-        withCredentials: true,
-      });
+      const res = await axios.get("/admin/allusers"); // 🔥 FIXED
       setUsers(res.data.users || []);
     } catch (err) {
       console.error(err);
@@ -28,9 +24,8 @@ export default function ManageUsers() {
   const togglePrime = async (u, val) => {
     try {
       const res = await axios.patch(
-        `${BASE_URL}/api/admin/users/${u._id}/prime`,
-        { isPrime: val },
-        { withCredentials: true }
+        `/admin/users/${u._id}/prime`,   // 🔥 FIXED
+        { isPrime: val }
       );
 
       setUsers((prev) =>

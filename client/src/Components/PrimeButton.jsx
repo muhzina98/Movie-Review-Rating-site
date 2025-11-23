@@ -1,15 +1,12 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-
 export default function PrimeButton() {
   const startPayment = async () => {
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/payment/create-checkout-session`,
-        {},
-        { withCredentials: true }
-      );
+      const res = await axios.post("/api/payment/create-checkout-session"); 
+      // 🔥 BASE_URL removed
+      // 🔥 withCredentials removed (handled globally)
+
       window.location.href = res.data.url;
     } catch (err) {
       alert("Payment start failed!");

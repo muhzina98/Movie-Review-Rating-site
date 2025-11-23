@@ -3,8 +3,6 @@ import axios from "axios";
 import { useSearch } from "../context/SearchContext";
 import MovieCard from "../Components/MovieCard";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
-
 const HomePage = () => {
   const [movies, setMovies] = useState([]);
   const [filteredMovies, setFilteredMovies] = useState([]);
@@ -12,15 +10,18 @@ const HomePage = () => {
   const { searchQuery, setSearchQuery } = useSearch();
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  //  Pagination State
+  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const moviesPerPage = 8;
 
+  // 🟢 FIXED — NO BASE_URL
   useEffect(() => {
     axios
-      .get(`${BASE_URL}/api/movie`)
+      .get("/movie") // backend route → /api/movie
       .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : res.data.movies || [];
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data.movies || [];
 
         setMovies(data);
         setFilteredMovies(data);
@@ -34,12 +35,10 @@ const HomePage = () => {
       .catch((err) => console.error("Error fetching movies:", err));
   }, []);
 
-  
-  
+  // Filtering logic
   useEffect(() => {
     let filtered = movies;
 
-    // Filter by category
     if (selectedCategory !== "All") {
       filtered = filtered.filter((m) =>
         m.genres?.some(
@@ -48,7 +47,6 @@ const HomePage = () => {
       );
     }
 
-    // Filter by search bar
     if ((searchQuery || "").trim() !== "") {
       filtered = filtered.filter((m) =>
         m.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -56,10 +54,10 @@ const HomePage = () => {
     }
 
     setFilteredMovies(filtered);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   }, [searchQuery, selectedCategory, movies]);
 
-  //pagination
+  // Pagination logic
   const indexLast = currentPage * moviesPerPage;
   const indexFirst = indexLast - moviesPerPage;
   const currentMovies = filteredMovies.slice(indexFirst, indexLast);
@@ -67,7 +65,6 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-
       {/* Banner */}
       <div
         className="w-full h-[400px] bg-cover bg-center flex items-end justify-start p-10"
@@ -92,10 +89,9 @@ const HomePage = () => {
         />
       </div>
 
-      {/*  Categories */}
+      {/* Categories */}
       <div className="max-w-7xl mx-auto px-6 mb-12">
         <h2 className="text-xl font-semibold mb-3">🎭 Categories</h2>
-
         <div className="flex flex-wrap gap-3">
           {categories.map((cat) => (
             <button
@@ -113,17 +109,15 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/*  Movie Grid */}
+      {/* Movie Grid */}
       <div className="max-w-7xl mx-auto px-6 pb-16">
         <h2 className="text-2xl font-bold mb-4">🔥 Trending Now</h2>
 
         {currentMovies.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {
-              currentMovies.map((movie) => (
-                <MovieCard key={movie._id} movie={movie} />
-              ))
-            }
+            {currentMovies.map((movie) => (
+              <MovieCard key={movie._id} movie={movie} />
+            ))}
           </div>
         ) : (
           <p className="text-center text-gray-500 dark:text-gray-400 mt-10">
@@ -131,7 +125,7 @@ const HomePage = () => {
           </p>
         )}
 
-        {/*  Pagination */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-10 gap-2">
             <button

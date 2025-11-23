@@ -2,7 +2,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
 const AuthContext = createContext();
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
+
+
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -10,9 +11,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/user/profile`, {
-        withCredentials: true,
-      });
+      const res = await axios.get("/user/profile");
       setUser(res.data.user || null);
     } catch (err) {
       setUser(null);
@@ -27,11 +26,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/user/login`,
-        { email, password },
-        { withCredentials: true }
-      );
+      const res = await axios.post("/user/login", { email, password });
       setUser(res.data.user || null);
       return { success: true };
     } catch (err) {
@@ -44,9 +39,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.get(`${BASE_URL}/api/user/logout`, {
-        withCredentials: true,
-      });
+      await axios.get("/user/logout");
     } finally {
       setUser(null);
     }
@@ -54,7 +47,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, loading, login, logout, fetchUser, BASE_URL }}
+      value={{ user, setUser, loading, login, logout, fetchUser }}
     >
       {!loading && children}
     </AuthContext.Provider>

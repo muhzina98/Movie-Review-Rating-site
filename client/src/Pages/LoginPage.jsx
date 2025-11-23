@@ -3,13 +3,11 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
-
 const LoginPage = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
-  const {setUser} =useAuth()
+  const { setUser } = useAuth();
 
   const change = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,19 +16,19 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${BASE_URL}/api/user/login`, form, { withCredentials: true });
+      // 🔥 FIXED — NO BASE_URL, NO withCredentials
+      const res = await axios.post("/user/login", form);
+
       setMessage(res.data?.message || "Login successful!");
+      setUser(res.data.user);
 
-     setUser(res.data.user)
-
-        //  Redirect by role
-        if (res.data.user.role === "admin") {
-          navigate("/admin-dashboard");
-        } else {
-          navigate("/user-dashboard");
-        }
+      // Redirect based on role
+      if (res.data.user.role === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/user-dashboard");
       }
-    catch (err) {
+    } catch (err) {
       setMessage(err.response?.data?.message || "Login failed");
     }
   };

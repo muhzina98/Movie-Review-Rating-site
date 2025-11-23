@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Users, Film, Star, MessageSquare } from "lucide-react";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
-
 const AdminOverview = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -11,9 +9,9 @@ const AdminOverview = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/admin/stats`, {
-          withCredentials: true,
-        });
+        // 🔥 FIXED — no BASE_URL, no withCredentials
+        const res = await axios.get("/admin/stats");
+
         setStats(res.data.stats);
       } catch (err) {
         console.error("Failed to fetch stats:", err);

@@ -2,44 +2,36 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Star, Trash2, MessageSquare } from "lucide-react";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
-
 const ManageReviews = () => {
   const [movies, setMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState("");
   const [reviews, setReviews] = useState([]);
 
-  //  Fetch all movies for dropdown
+  // Fetch all movies for dropdown
   const fetchMovies = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/admin/allmovies`, {
-        withCredentials: true,
-      });
+      const res = await axios.get("/admin/allmovies"); // 🔥 FIXED
       setMovies(res.data.movies || []);
     } catch (error) {
       console.error("Fetch movies error:", error);
     }
   };
 
-  //  Fetch reviews for selected movie
+  // Fetch reviews for a movie
   const fetchReviews = async (movieId) => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/admin/allreviews/${movieId}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(`/admin/allreviews/${movieId}`); // 🔥 FIXED
       setReviews(res.data.reviews || []);
     } catch (error) {
       console.error("Fetch reviews error:", error);
     }
   };
 
-  //  Delete review
-  const handleDelete = async (id) => {
+  // Delete review
+  const handleDelete = async (reviewId) => {
     if (confirm("Are you sure you want to delete this review?")) {
       try {
-        await axios.delete(`${BASE_URL}/api/admin/deletereview/${id}`, {
-          withCredentials: true,
-        });
+        await axios.delete(`/admin/deletereview/${reviewId}`); // 🔥 FIXED
         alert("Review deleted!");
         fetchReviews(selectedMovie);
       } catch (error) {
@@ -90,16 +82,19 @@ const ManageReviews = () => {
                 <th className="p-3 text-center">Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {reviews.length > 0 ? (
                 reviews.map((review) => (
                   <tr key={review._id} className="border-b dark:border-gray-700">
                     <td className="p-3 font-medium">{review.author?.name}</td>
+
                     <td className="p-3 flex items-center gap-1">
-                      <Star className="text-yellow-400" size={16} />{" "}
-                      {review.rating}
+                      <Star className="text-yellow-400" size={16} /> {review.rating}
                     </td>
+
                     <td className="p-3">{review.comment}</td>
+
                     <td className="p-3 text-center">
                       <button
                         onClick={() => handleDelete(review._id)}

@@ -2,8 +2,6 @@ import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
-
 const RegisterPage = () => {
     const navigate = useNavigate();
     const [form, setForm] = useState({ name: "", email: "", password: "", avathar: "" });
@@ -20,16 +18,20 @@ const RegisterPage = () => {
         fd.append("name", form.name);
         fd.append("email", form.email);
         fd.append("password", form.password);
-        fd.append("avathar", form.avathar); 
+        if (form.avathar) fd.append("avathar", form.avathar);
+
         try {
-            const res = await axios.post(`${BASE_URL}/api/user/register`, fd, {
+            // 🔥 FIXED — removed BASE_URL, removed localhost fallback
+            const res = await axios.post("/user/register", fd, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
-            setMessage(res.data.message || "Registered");
+
+            setMessage(res.data.message || "Registered successfully!");
 
             setTimeout(() => navigate("/login"), 800);
+
         } catch (err) {
-            setMessage(err.response?.data?.message || "Failed");
+            setMessage(err.response?.data?.message || "Failed to register");
         }
     };
 

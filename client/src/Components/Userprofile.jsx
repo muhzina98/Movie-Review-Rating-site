@@ -4,7 +4,7 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
 const UserProfile = () => {
-  const { user, setUser, BASE_URL } = useAuth();
+  const { user, setUser } = useAuth(); // ❌ removed BASE_URL
 
   const fileInputRef = useRef(null);
 
@@ -14,20 +14,17 @@ const UserProfile = () => {
   const [password, setPassword] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // Live preview: if new file selected, show that, else backend URL
+  // Profile preview
   const profilePic =
     selectedFile
       ? URL.createObjectURL(selectedFile)
       : user?.avathar ||
         "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
+  // 🔥 FIXED — Payment using SAME DOMAIN = Cookies attach!
   const handlePrime = async () => {
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/payment/create-checkout-session`,
-        {},
-        { withCredentials: true }
-      );
+      const res = await axios.post("/payment/create-checkout-session", {});
       window.location.href = res.data.url;
     } catch {
       alert("Unable to start Prime payment");
@@ -39,6 +36,7 @@ const UserProfile = () => {
     if (file) setSelectedFile(file);
   };
 
+  // 🔥 FIXED — Update profile using /api instead of BASE_URL
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     try {
@@ -48,11 +46,7 @@ const UserProfile = () => {
       if (password) formData.append("password", password);
       if (selectedFile) formData.append("avathar", selectedFile);
 
-      const res = await axios.patch(
-        `${BASE_URL}/api/user/update`,
-        formData,
-        { withCredentials: true }
-      );
+      const res = await axios.patch("/user/update", formData);
 
       const updatedUser = res.data.user;
       setUser(updatedUser);

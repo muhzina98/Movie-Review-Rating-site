@@ -6,8 +6,6 @@ import { useSearch } from "../context/SearchContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
-
 const UserDashboard = () => {
   const { user } = useAuth();
   const [movies, setMovies] = useState([]);
@@ -23,32 +21,39 @@ const UserDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const moviesPerPage = 8;
 
-  // Fetch reviews
+  // ===========================
+  // FETCH MY REVIEWS
+  // ===========================
   useEffect(() => {
     axios
-      .get(`${BASE_URL}/api/user/my-reviews`, { withCredentials: true })
+      .get(`/api/user/my-reviews`) // 🔥 BASE_URL removed
       .then((res) => setMyReviews(res.data.reviews))
       .catch((err) => console.log("My reviews error:", err));
   }, []);
 
-  // Fetch movies
+  // ===========================
+  // FETCH MOVIES
+  // ===========================
   useEffect(() => {
     axios
-      .get(`${BASE_URL}/api/movie`)
+      .get(`/api/movie`) // 🔥 BASE_URL removed
       .then((res) => {
-        setMovies(res.data);
-        setFilteredMovies(res.data);
+        const data = Array.isArray(res.data) ? res.data : res.data.movies;
+        setMovies(data);
+        setFilteredMovies(data);
 
         const uniqueGenres = [
           "All",
-          ...new Set(res.data.flatMap((m) => m.genres || [])),
+          ...new Set(data.flatMap((m) => m.genres || []))
         ];
         setGenres(uniqueGenres);
       })
       .catch((err) => console.error("Movies fetch error:", err));
   }, []);
 
-  // Filter movies
+  // ===========================
+  // FILTER MOVIES
+  // ===========================
   useEffect(() => {
     let filtered = movies;
 
@@ -83,7 +88,7 @@ const UserDashboard = () => {
         </h1>
 
         {/* Profile */}
-        <UserProfile BASE_URL={BASE_URL} />
+        <UserProfile />
 
         {/* Movies */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">

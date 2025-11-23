@@ -3,8 +3,6 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ReviewSection from "../Components/ReviewSection";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
-
 const MovieDetailsPage = () => {
   const { id } = useParams();
   const location = useLocation();
@@ -18,9 +16,11 @@ const MovieDetailsPage = () => {
   // Fetch movie details
   useEffect(() => {
     axios
-      .get(`${BASE_URL}/api/movie/${id}`, { withCredentials: true })
+      .get(`/movie/${id}`)  // 🔥 FIXED — NO BASE_URL and no withCredentials
       .then((res) => {
-        setMovie(res.data);
+        // Backend returns either movie or { movie: {...} }
+        const movieData = res.data.movie || res.data;
+        setMovie(movieData);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -32,14 +32,14 @@ const MovieDetailsPage = () => {
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       <div className="flex flex-col md:flex-row gap-8">
-        {/*  Poster */}
+        {/* Poster */}
         <img
           src={movie.posterUrl || "/placeholder.jpg"}
           alt={movie.title}
           className="w-full md:w-1/3 rounded-xl shadow-lg object-cover"
         />
 
-        {/*  Movie Details */}
+        {/* Movie Details */}
         <div className="flex-1 space-y-3">
           <h1 className="text-4xl font-bold text-yellow-500">{movie.title}</h1>
           <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
@@ -47,22 +47,11 @@ const MovieDetailsPage = () => {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700 dark:text-gray-300 mt-4">
-            <p>
-              <strong>Director:</strong> {movie.director}
-            </p>
-            <p>
-              <strong>Runtime:</strong> {movie.runtime} min
-            </p>
-            <p>
-              <strong>Release Date:</strong>{" "}
-              {new Date(movie.releaseDate).toDateString()}
-            </p>
-            <p>
-              <strong>Genres:</strong> {movie.genres.join(", ")}
-            </p>
-            <p>
-              <strong>Cast:</strong> {movie.cast.join(", ")}
-            </p>
+            <p><strong>Director:</strong> {movie.director}</p>
+            <p><strong>Runtime:</strong> {movie.runtime} min</p>
+            <p><strong>Release Date:</strong> {new Date(movie.releaseDate).toDateString()}</p>
+            <p><strong>Genres:</strong> {movie.genres.join(", ")}</p>
+            <p><strong>Cast:</strong> {movie.cast.join(", ")}</p>
           </div>
 
           {movie.createdBy && (
@@ -71,7 +60,7 @@ const MovieDetailsPage = () => {
             </p>
           )}
 
-          {/*  Back button for admin only */}
+          {/* Back button for admin only */}
           {isAdmin && (
             <button
               onClick={() => navigate("/admin-dashboard/manage-movies")}
@@ -83,17 +72,13 @@ const MovieDetailsPage = () => {
         </div>
       </div>
 
-      {/*  Trailer */}
+      {/* Trailer */}
       {movie.trailerUrl ? (
         <div className="mt-10">
           <h2 className="text-2xl font-semibold mb-4 text-yellow-500">
             🎥 Watch Trailer
           </h2>
-          <video
-            controls
-            className="w-full rounded-xl shadow-lg"
-            src={movie.trailerUrl}
-          />
+          <video controls className="w-full rounded-xl shadow-lg" src={movie.trailerUrl} />
         </div>
       ) : (
         <p className="text-gray-500 dark:text-gray-400 italic mt-10">
@@ -101,7 +86,7 @@ const MovieDetailsPage = () => {
         </p>
       )}
 
-      {/*  Reviews — only for users */}
+      {/* Reviews — only for regular users */}
       {!isAdmin && (
         <div className="mt-10">
           <h2 className="text-2xl font-semibold mb-4 text-yellow-500">⭐ Reviews</h2>

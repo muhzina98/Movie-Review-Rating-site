@@ -3,8 +3,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import StarRating from "./StarRating";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
-
 const ReviewSection = ({ movieId }) => {
   const [reviews, setReviews] = useState([]);
   const [text, setText] = useState("");
@@ -13,16 +11,16 @@ const ReviewSection = ({ movieId }) => {
   const [loading, setLoading] = useState(true);
 
   // Editing states
-  const [editMode, setEditMode] = useState(null); // reviewId
+  const [editMode, setEditMode] = useState(null); 
   const [editText, setEditText] = useState("");
   const [editRating, setEditRating] = useState(5);
 
   const navigate = useNavigate();
 
-  // CHECK IF USER LOGGED IN
+  // CHECK USER PROFILE
   useEffect(() => {
     axios
-      .get(`${BASE_URL}/api/user/profile`, { withCredentials: true })
+      .get("/user/profile") // 🔥 FIXED
       .then((res) => {
         setUser(res.data.user);
         setLoading(false);
@@ -33,17 +31,17 @@ const ReviewSection = ({ movieId }) => {
       });
   }, []);
 
-  // GET REVIEWS
+  // GET REVIEWS FOR MOVIE
   useEffect(() => {
     if (!user) return;
 
     axios
-      .get(`${BASE_URL}/api/user/reviews/${movieId}`)
+      .get(`/user/reviews/${movieId}`) // 🔥 FIXED
       .then((res) => setReviews(res.data.reviews))
       .catch((err) => console.log(err));
   }, [movieId, user]);
 
-  // SUBMIT REVIEW
+  // ADD NEW REVIEW
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -54,17 +52,15 @@ const ReviewSection = ({ movieId }) => {
     }
 
     try {
-      await axios.post(
-        `${BASE_URL}/api/user/addReview`,
-        { movieId, rating, comment: text },
-        { withCredentials: true }
-      );
+      await axios.post("/user/addReview", { movieId, rating, comment: text }); // 🔥 FIXED
 
       setText("");
       setRating(5);
 
-      const res = await axios.get(`${BASE_URL}/api/user/reviews/${movieId}`);
+      // Refresh review list
+      const res = await axios.get(`/user/reviews/${movieId}`);
       setReviews(res.data.reviews);
+
     } catch (error) {
       console.error(error);
     }
@@ -81,17 +77,17 @@ const ReviewSection = ({ movieId }) => {
   const handleUpdateReview = async (reviewId) => {
     try {
       const res = await axios.patch(
-        `${BASE_URL}/api/user/updateReview/${reviewId}`,
-        { rating: editRating, comment: editText },
-        { withCredentials: true }
+        `/user/updateReview/${reviewId}`, // 🔥 FIXED
+        { rating: editRating, comment: editText }
       );
 
-      // Update UI immediately
+      // Update UI
       setReviews((prev) =>
         prev.map((r) => (r._id === reviewId ? res.data.review : r))
       );
 
       setEditMode(null);
+
     } catch (err) {
       console.log(err);
     }
@@ -143,10 +139,8 @@ const ReviewSection = ({ movieId }) => {
       ) : (
         <div className="space-y-3">
           {reviews.map((r) => (
-            <div
-              key={r._id}
-              className="bg-white dark:bg-gray-700 p-4 rounded-xl"
-            >
+            <div key={r._id} className="bg-white dark:bg-gray-700 p-4 rounded-xl">
+              
               {editMode === r._id ? (
                 // ⭐ EDIT MODE
                 <div className="space-y-2">
@@ -174,7 +168,7 @@ const ReviewSection = ({ movieId }) => {
                   </div>
                 </div>
               ) : (
-                // ⭐ NORMAL MODE
+                // ⭐ NORMAL VIEW
                 <>
                   <div className="text-sm flex items-center gap-2">
                     <b>{r.author?.name || "Anonymous"}</b>

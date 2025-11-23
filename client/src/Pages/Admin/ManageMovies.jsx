@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Plus, Trash2, Edit3, Film, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useSearch } from "../../context/SearchContext"; 
-
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3001";
+import { useSearch } from "../../context/SearchContext";
 
 const ManageMovies = () => {
   const [movies, setMovies] = useState([]);
-  const [filteredMovies, setFilteredMovies] = useState([]); 
+  const [filteredMovies, setFilteredMovies] = useState([]);
   const [form, setForm] = useState({
     title: "",
     synopsis: "",
@@ -25,18 +23,15 @@ const ManageMovies = () => {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { searchQuery } = useSearch();
 
-  const { searchQuery } = useSearch(); 
-
-  // get all movies
+  // Fetch all admin movies
   const fetchMovies = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/admin/allmovies`, {
-        withCredentials: true,
-      });
+      const res = await axios.get("/admin/allmovies"); // 🔥 FIXED
       const data = res.data.movies || [];
       setMovies(data);
-      setFilteredMovies(data); 
+      setFilteredMovies(data);
     } catch (error) {
       console.error("Fetch movies error:", error);
     }
@@ -46,9 +41,9 @@ const ManageMovies = () => {
     fetchMovies();
   }, []);
 
-  //  Update filtered list when searchQuery changes
+  // Filter by search bar
   useEffect(() => {
-    if (!searchQuery || searchQuery.trim() === "") {
+    if (!searchQuery.trim()) {
       setFilteredMovies(movies);
     } else {
       const filtered = movies.filter((movie) =>
@@ -58,7 +53,7 @@ const ManageMovies = () => {
     }
   }, [searchQuery, movies]);
 
-  // Handle form input
+  // Handle form inputs
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
@@ -70,7 +65,7 @@ const ManageMovies = () => {
     }
   };
 
-  //  Add / Update movie
+  // Add or update movie
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -82,18 +77,17 @@ const ManageMovies = () => {
 
     try {
       if (editingId) {
-        await axios.patch(`${BASE_URL}/api/admin/updatemovie/${editingId}`, formData, {
-          withCredentials: true,
+        await axios.patch(`/admin/updatemovie/${editingId}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         alert("✅ Movie updated successfully!");
       } else {
-        await axios.post(`${BASE_URL}/api/admin/movies`, formData, {
-          withCredentials: true,
+        await axios.post("/admin/movies", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         alert("🎬 Movie added successfully!");
       }
+
       resetForm();
       fetchMovies();
     } catch (error) {
@@ -140,9 +134,7 @@ const ManageMovies = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this movie?")) {
       try {
-        await axios.delete(`${BASE_URL}/api/admin/deletemovie/${id}`, {
-          withCredentials: true,
-        });
+        await axios.delete(`/admin/deletemovie/${id}`); // 🔥 FIXED
         alert("🗑️ Movie deleted successfully!");
         fetchMovies();
       } catch (error) {
@@ -171,13 +163,19 @@ const ManageMovies = () => {
           <input name="cast" value={form.cast} onChange={handleChange} placeholder="🎭 Cast (comma separated)" className="input" />
         </div>
 
-        <textarea name="synopsis" value={form.synopsis} onChange={handleChange} placeholder="📝 Synopsis" className="input h-24" />
+        <textarea
+          name="synopsis"
+          value={form.synopsis}
+          onChange={handleChange}
+          placeholder="📝 Synopsis"
+          className="input h-24"
+        />
 
         <div className="grid grid-cols-2 gap-6 items-center">
           <div>
             <label className="block text-sm font-medium mb-1">Poster</label>
             <input type="file" name="posterUrl" accept="image/*" onChange={handleChange} className="input" />
-            {previewPoster && <img src={previewPoster} alt="Poster Preview" className="w-32 h-32 mt-2 rounded-lg object-cover shadow" />}
+            {previewPoster && <img src={previewPoster} className="w-32 h-32 mt-2 rounded-lg object-cover shadow" />}
           </div>
 
           <div>
@@ -208,7 +206,7 @@ const ManageMovies = () => {
         </div>
       </form>
 
-      {/* Movies Table */}
+      {/* Table */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
@@ -221,7 +219,7 @@ const ManageMovies = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredMovies.map((movie) => ( 
+            {filteredMovies.map((movie) => (
               <tr key={movie._id} className="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                 <td className="p-3">
                   <img src={movie.posterUrl} className="w-16 h-16 object-cover rounded" />
