@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -17,7 +17,7 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       // 🔥 FIXED — NO BASE_URL, NO withCredentials
-      const res = await axios.post("/user/login", form);
+      const res = await api.post("/user/login", form);
 
       setMessage(res.data?.message || "Login successful!");
       setUser(res.data.user);

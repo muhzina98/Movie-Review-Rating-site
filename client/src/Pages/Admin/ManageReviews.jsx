@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../axios";
 import { Star, Trash2, MessageSquare } from "lucide-react";
 
 const ManageReviews = () => {
@@ -10,7 +10,7 @@ const ManageReviews = () => {
   // Fetch all movies for dropdown
   const fetchMovies = async () => {
     try {
-      const res = await axios.get("/admin/allmovies"); // 🔥 FIXED
+      const res = await api.get("/admin/allmovies");
       setMovies(res.data.movies || []);
     } catch (error) {
       console.error("Fetch movies error:", error);
@@ -20,7 +20,7 @@ const ManageReviews = () => {
   // Fetch reviews for a movie
   const fetchReviews = async (movieId) => {
     try {
-      const res = await axios.get(`/admin/allreviews/${movieId}`); // 🔥 FIXED
+      const res = await api.get(`/admin/allreviews/${movieId}`); 
       setReviews(res.data.reviews || []);
     } catch (error) {
       console.error("Fetch reviews error:", error);
@@ -31,7 +31,7 @@ const ManageReviews = () => {
   const handleDelete = async (reviewId) => {
     if (confirm("Are you sure you want to delete this review?")) {
       try {
-        await axios.delete(`/admin/deletereview/${reviewId}`); // 🔥 FIXED
+        await api.delete(`/admin/deletereview/${reviewId}`); // 🔥 FIXED
         alert("Review deleted!");
         fetchReviews(selectedMovie);
       } catch (error) {

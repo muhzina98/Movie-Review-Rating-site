@@ -1,11 +1,9 @@
-import axios from "axios";
+import api from "../axios";
 
 export default function PrimeButton() {
   const startPayment = async () => {
     try {
-      const res = await axios.post("/api/payment/create-checkout-session"); 
-      // 🔥 BASE_URL removed
-      // 🔥 withCredentials removed (handled globally)
+      const res = await api.post("/payment/create-checkout-session"); 
 
       window.location.href = res.data.url;
     } catch (err) {

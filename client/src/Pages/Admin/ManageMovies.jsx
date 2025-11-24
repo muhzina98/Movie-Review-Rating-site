@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../axios";
 import { Plus, Trash2, Edit3, Film, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSearch } from "../../context/SearchContext";
@@ -28,7 +28,7 @@ const ManageMovies = () => {
   // Fetch all admin movies
   const fetchMovies = async () => {
     try {
-      const res = await axios.get("/admin/allmovies"); // 🔥 FIXED
+      const res = await api.get("/admin/allmovies"); // 🔥 FIXED
       const data = res.data.movies || [];
       setMovies(data);
       setFilteredMovies(data);
@@ -77,12 +77,12 @@ const ManageMovies = () => {
 
     try {
       if (editingId) {
-        await axios.patch(`/admin/updatemovie/${editingId}`, formData, {
+        await api.patch(`/admin/updatemovie/${editingId}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         alert("✅ Movie updated successfully!");
       } else {
-        await axios.post("/admin/movies", formData, {
+        await api.post("/admin/movies", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         alert("🎬 Movie added successfully!");
@@ -134,7 +134,7 @@ const ManageMovies = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this movie?")) {
       try {
-        await axios.delete(`/admin/deletemovie/${id}`); // 🔥 FIXED
+        await api.delete(`/admin/deletemovie/${id}`); // 🔥 FIXED
         alert("🗑️ Movie deleted successfully!");
         fetchMovies();
       } catch (error) {

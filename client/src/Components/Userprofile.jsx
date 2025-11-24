@@ -1,10 +1,10 @@
 import { useState, useRef } from "react";
 import { Camera, Edit3, Save, Crown } from "lucide-react";
-import axios from "axios";
+import api from "../axios";
 import { useAuth } from "../context/AuthContext";
 
 const UserProfile = () => {
-  const { user, setUser } = useAuth(); // ❌ removed BASE_URL
+  const { user, setUser } = useAuth(); 
 
   const fileInputRef = useRef(null);
 
@@ -24,7 +24,7 @@ const UserProfile = () => {
   // 🔥 FIXED — Payment using SAME DOMAIN = Cookies attach!
   const handlePrime = async () => {
     try {
-      const res = await axios.post("/payment/create-checkout-session", {});
+      const res = await api.post("/payment/create-checkout-session", {});
       window.location.href = res.data.url;
     } catch {
       alert("Unable to start Prime payment");
@@ -36,7 +36,6 @@ const UserProfile = () => {
     if (file) setSelectedFile(file);
   };
 
-  // 🔥 FIXED — Update profile using /api instead of BASE_URL
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     try {
@@ -46,7 +45,7 @@ const UserProfile = () => {
       if (password) formData.append("password", password);
       if (selectedFile) formData.append("avathar", selectedFile);
 
-      const res = await axios.patch("/user/update", formData);
+      const res = await api.patch("/user/update", formData);
 
       const updatedUser = res.data.user;
       setUser(updatedUser);

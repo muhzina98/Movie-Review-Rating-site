@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../axios";
 import { useNavigate } from "react-router-dom";
 import StarRating from "./StarRating";
 
@@ -19,8 +19,8 @@ const ReviewSection = ({ movieId }) => {
 
   // CHECK USER PROFILE
   useEffect(() => {
-    axios
-      .get("/user/profile") // 🔥 FIXED
+    api
+      .get("/user/profile") 
       .then((res) => {
         setUser(res.data.user);
         setLoading(false);
@@ -35,7 +35,7 @@ const ReviewSection = ({ movieId }) => {
   useEffect(() => {
     if (!user) return;
 
-    axios
+    api
       .get(`/user/reviews/${movieId}`) // 🔥 FIXED
       .then((res) => setReviews(res.data.reviews))
       .catch((err) => console.log(err));
@@ -52,13 +52,13 @@ const ReviewSection = ({ movieId }) => {
     }
 
     try {
-      await axios.post("/user/addReview", { movieId, rating, comment: text }); // 🔥 FIXED
+      await api.post("/user/addReview", { movieId, rating, comment: text }); // 🔥 FIXED
 
       setText("");
       setRating(5);
 
       // Refresh review list
-      const res = await axios.get(`/user/reviews/${movieId}`);
+      const res = await api.get(`/user/reviews/${movieId}`);
       setReviews(res.data.reviews);
 
     } catch (error) {
@@ -76,7 +76,7 @@ const ReviewSection = ({ movieId }) => {
   // UPDATE REVIEW
   const handleUpdateReview = async (reviewId) => {
     try {
-      const res = await axios.patch(
+      const res = await api.patch(
         `/user/updateReview/${reviewId}`, // 🔥 FIXED
         { rating: editRating, comment: editText }
       );

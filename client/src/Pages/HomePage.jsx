@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../axios";
 import { useSearch } from "../context/SearchContext";
 import MovieCard from "../Components/MovieCard";
 
@@ -10,14 +10,12 @@ const HomePage = () => {
   const { searchQuery, setSearchQuery } = useSearch();
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const moviesPerPage = 8;
 
-  // 🟢 FIXED — NO BASE_URL
   useEffect(() => {
-    axios
-      .get("/movie") // backend route → /api/movie
+    api
+      .get("/movie")
       .then((res) => {
         const data = Array.isArray(res.data)
           ? res.data
@@ -35,7 +33,6 @@ const HomePage = () => {
       .catch((err) => console.error("Error fetching movies:", err));
   }, []);
 
-  // Filtering logic
   useEffect(() => {
     let filtered = movies;
 
@@ -57,7 +54,6 @@ const HomePage = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, movies]);
 
-  // Pagination logic
   const indexLast = currentPage * moviesPerPage;
   const indexFirst = indexLast - moviesPerPage;
   const currentMovies = filteredMovies.slice(indexFirst, indexLast);

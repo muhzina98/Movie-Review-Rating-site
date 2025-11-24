@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../axios";
 import { Users, Film, Star, MessageSquare } from "lucide-react";
 
 const AdminOverview = () => {
@@ -10,7 +10,7 @@ const AdminOverview = () => {
     const fetchStats = async () => {
       try {
         // 🔥 FIXED — no BASE_URL, no withCredentials
-        const res = await axios.get("/admin/stats");
+        const res = await api.get("/admin/stats");
 
         setStats(res.data.stats);
       } catch (err) {

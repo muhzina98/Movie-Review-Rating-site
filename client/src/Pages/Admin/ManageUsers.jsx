@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../axios";
 import { useAuth } from "../../context/AuthContext";
 
 export default function ManageUsers() {
@@ -13,7 +13,7 @@ export default function ManageUsers() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("/admin/allusers"); // 🔥 FIXED
+      const res = await api.get("/admin/allusers"); 
       setUsers(res.data.users || []);
     } catch (err) {
       console.error(err);
@@ -23,7 +23,7 @@ export default function ManageUsers() {
 
   const togglePrime = async (u, val) => {
     try {
-      const res = await axios.patch(
+      const res = await api.patch(
         `/admin/users/${u._id}/prime`,   // 🔥 FIXED
         { isPrime: val }
       );

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import axios from "axios";
+import api from "../axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -14,7 +14,7 @@ export default function PaymentSuccess() {
       try {
         console.log("Session ID:", sessionId);
 
-        const res = await axios.get(
+        const res = await api.get(
           `/payment/verify-session?session_id=${sessionId}`
         );
 

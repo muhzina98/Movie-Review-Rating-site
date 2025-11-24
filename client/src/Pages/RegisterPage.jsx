@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../axios";
 import { Link, useNavigate } from "react-router-dom";
 
 const RegisterPage = () => {
@@ -22,7 +22,7 @@ const RegisterPage = () => {
 
         try {
             // 🔥 FIXED — removed BASE_URL, removed localhost fallback
-            const res = await axios.post("/user/register", fd, {
+            const res = await api.post("/user/register", fd, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 

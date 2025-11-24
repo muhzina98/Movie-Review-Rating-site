@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Filter, Star } from "lucide-react";
-import axios from "axios";
 import UserProfile from "../Components/Userprofile.jsx";
 import { useSearch } from "../context/SearchContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import api from "../axios.js";
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -21,22 +21,18 @@ const UserDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const moviesPerPage = 8;
 
-  // ===========================
   // FETCH MY REVIEWS
-  // ===========================
   useEffect(() => {
-    axios
-      .get(`/api/user/my-reviews`) // 🔥 BASE_URL removed
+    api
+      .get(`/user/my-reviews`) 
       .then((res) => setMyReviews(res.data.reviews))
       .catch((err) => console.log("My reviews error:", err));
   }, []);
 
-  // ===========================
   // FETCH MOVIES
-  // ===========================
   useEffect(() => {
-    axios
-      .get(`/api/movie`) // 🔥 BASE_URL removed
+    api
+      .get(`/movie`)
       .then((res) => {
         const data = Array.isArray(res.data) ? res.data : res.data.movies;
         setMovies(data);
@@ -51,9 +47,7 @@ const UserDashboard = () => {
       .catch((err) => console.error("Movies fetch error:", err));
   }, []);
 
-  // ===========================
   // FILTER MOVIES
-  // ===========================
   useEffect(() => {
     let filtered = movies;
 

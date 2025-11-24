@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../axios";
 import ReviewSection from "../Components/ReviewSection";
 
 const MovieDetailsPage = () => {
@@ -15,7 +15,7 @@ const MovieDetailsPage = () => {
 
   // Fetch movie details
   useEffect(() => {
-    axios
+    api
       .get(`/movie/${id}`)  // 🔥 FIXED — NO BASE_URL and no withCredentials
       .then((res) => {
         // Backend returns either movie or { movie: {...} }
