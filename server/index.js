@@ -11,6 +11,7 @@ const cors = require('cors')
 const allowedOrigins = [
   "http://localhost:5173",
   "https://movie-review-rating-site-1.onrender.com", // frontend
+  "https://movie-review-rating-site.onrender.com"
 ];
 
 app.use((req, res, next) => {

@@ -6,6 +6,19 @@ const createToken = require('../utils/generateToken');
 const updateMovieStats = require('../helpers/updateMovieStats');
 const { cloudinaryInstances } = require('../config/cloudinary');
 
+const isProd = process.env.NODE_ENV === "production";
+
+function cookieOptions() {
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    domain: isProd ? ".onrender.com" : undefined,
+    path: "/",
+    maxAge: 60 * 60 * 1000,
+  };
+}
+
 // ------------------- REGISTER -------------------
 const userRegister = async (req, res) => {
   try {
@@ -96,15 +109,8 @@ const userLogin = async (req, res) => {
 
     const token = createToken(userExist._id, userExist.email, userExist.role);
 
-    const isProd = process.env.NODE_ENV === 'production';
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 1000,
-    });
+    res.cookie('token', token, cookieOptions());
 
     return res.status(200).json({ message: 'Login Successful', user: userObject });
   } catch (error) {
@@ -179,7 +185,6 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const isProd = process.env.NODE_ENV === 'production';
 
     // 🟡 Only regenerate token if email changed
     if (email && email !== req.user.email) {
@@ -189,13 +194,7 @@ const updateUser = async (req, res) => {
         updatedUser.role
       );
 
-      res.cookie('token', newToken, {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? 'none' : 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 1000,
-      });
+      res.cookie('token', newToken, cookieOptions());
     }
 
     res.json({ user: updatedUser });
@@ -208,7 +207,10 @@ const updateUser = async (req, res) => {
 // ------------------- LOGOUT -------------------
 const logout = async (req, res) => {
   try {
-    res.clearCookie('token', { path: '/' });
+    res.clearCookie('token', { 
+        path: '/' ,
+         domain: isProd ? ".onrender.com" : undefined
+});
     res.json({ message: 'User logout Successfully' });
   } catch (error) {
     console.log(error);
