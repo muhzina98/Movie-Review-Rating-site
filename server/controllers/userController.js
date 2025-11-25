@@ -209,7 +209,7 @@ const logout = async (req, res) => {
   try {
     res.clearCookie('token', { 
         path: '/' ,
-         domain: isProd ? ".onrender.com" : undefined
+  domain: isProd ? "movie-review-rating-site.onrender.com" : undefined,
 });
     res.json({ message: 'User logout Successfully' });
   } catch (error) {
