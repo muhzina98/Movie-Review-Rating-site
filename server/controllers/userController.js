@@ -13,11 +13,11 @@ function cookieOptions() {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
-    domain: isProd ? "movie-review-rating-site.onrender.com" : undefined,
- path: "/",
+    path: "/",
     maxAge: 60 * 60 * 1000,
   };
 }
+
 
 // ------------------- REGISTER -------------------
 const userRegister = async (req, res) => {
@@ -207,10 +207,12 @@ const updateUser = async (req, res) => {
 // ------------------- LOGOUT -------------------
 const logout = async (req, res) => {
   try {
-    res.clearCookie('token', { 
-        path: '/' ,
-  domain: isProd ? "movie-review-rating-site.onrender.com" : undefined,
+   res.clearCookie("token", {
+  path: "/",
+  secure: isProd,
+  sameSite: isProd ? "none" : "lax",
 });
+
     res.json({ message: 'User logout Successfully' });
   } catch (error) {
     console.log(error);
