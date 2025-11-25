@@ -13,8 +13,8 @@ function cookieOptions() {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
-    domain: isProd ? ".onrender.com" : undefined,
-    path: "/",
+    domain: isProd ? "movie-review-rating-site.onrender.com" : undefined,
+ path: "/",
     maxAge: 60 * 60 * 1000,
   };
 }
