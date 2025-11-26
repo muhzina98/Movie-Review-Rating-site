@@ -17,7 +17,7 @@ connectDatabase();
 // API routes FIRST
 app.use("/api", router);
 
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "PRODUCTION") {
   const frontendPath = path.join(__dirname, "..", "client", "dist");
   app.use(express.static(frontendPath));
 
