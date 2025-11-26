@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const cors = require("cors");
 const app = express();
 require("dotenv").config();
 
@@ -13,6 +14,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 connectDatabase();
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL,  // https://movie-review-rating-site.onrender.com
+  credentials: true,
+}));
+
 
 // API routes FIRST
 app.use("/api", router);
