@@ -4,7 +4,10 @@
   "main": "server/index.js",
   "private": true,
   "scripts": {
-    "start": "node server/index.js",
-    "build": "cd client && npm install && npm run build"
+    "install:server": "cd server && npm install",
+    "install:client": "cd client && npm install",
+    "build": "npm run install:client && npm run build:client",
+    "build:client": "cd client && npm run build",
+    "start": "node server/index.js"
   }
 }
