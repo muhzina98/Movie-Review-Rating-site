@@ -17,11 +17,13 @@ connectDatabase();
 // API routes FIRST
 app.use("/api", router);
 
-// Serve React frontend
-app.use(express.static(path.join(__dirname, "public")));
+//Serve React frontend build
+const frontendPath = path.join(__dirname, "..", "client", "dist");
+app.use(express.static(frontendPath));
 
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// Fallback route (for all other paths)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 app.listen(port, () => {
