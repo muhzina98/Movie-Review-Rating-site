@@ -18,12 +18,15 @@ connectDatabase();
 app.use("/api", router);
 
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "client/dist")));
+  const frontendPath = path.join(__dirname, "..", "client", "dist");
+  app.use(express.static(frontendPath));
 
+  // wildcard fallback using regex — required for Express 5
   app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, "client/dist", "index.html"));
+    res.sendFile(path.join(frontendPath, "index.html"));
   });
 }
+
 
 
 app.listen(port, () => {
