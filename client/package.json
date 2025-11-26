@@ -9,6 +9,10 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "engines": {
+  "node": "18.x"
+},
+
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@stripe/stripe-js": "^8.4.0",
