@@ -23,27 +23,39 @@ function cookieOptions() {
 const userRegister = async (req, res) => {
   try {
     const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
-    const ADMIN_EMAILS = ['admin@example.com'];
+    const ADMIN_EMAILS = ["admin@example.com"];
 
-    const { name, email, password } = req.body || {};
+    const { name, email, password, confirmPassword } = req.body || {};
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: 'All fields are required' });
+    // 🔥 Validate required fields
+    if (!name || !email || !password || !confirmPassword) {
+      return res.status(400).json({ message: "All fields are required" });
     }
+
+    // 🔥 Email validation
     if (!isValidEmail(email)) {
-      return res.status(400).json({ message: 'Invalid email format' });
+      return res.status(400).json({ message: "Invalid email format" });
     }
+
+    // 🔥 Password length check
     if (password.length < 6) {
       return res
         .status(400)
-        .json({ message: 'Password must be at least 6 characters' });
+        .json({ message: "Password must be at least 6 characters" });
     }
 
+    // 🔥 Confirm password match
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    // 🔥 Check if email already exists
     const existing = await User.findOne({ email });
     if (existing) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: "User already exists" });
     }
 
+    // 🔥 Upload avatar if provided
     let avatarUrl = undefined;
     if (req.file) {
       const cloudinaryResponse = await cloudinaryInstances.uploader.upload(
@@ -52,10 +64,12 @@ const userRegister = async (req, res) => {
       avatarUrl = cloudinaryResponse.secure_url;
     }
 
+    // 🔥 Encrypt password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const role = ADMIN_EMAILS.includes(email.toLowerCase()) ? 'admin' : 'user';
+    // 🔥 Assign role if email matches admin
+    const role = ADMIN_EMAILS.includes(email.toLowerCase()) ? "admin" : "user";
 
     const newUser = new User({
       name,
@@ -67,15 +81,23 @@ const userRegister = async (req, res) => {
 
     const savedUser = await newUser.save();
 
-    return res.status(201).json({ message: 'User created', user: savedUser });
+    return res.status(201).json({
+      message: "User created successfully",
+      user: {
+        _id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        avathar: savedUser.avathar,
+        role: savedUser.role,
+      },
+    });
   } catch (error) {
     console.log(error);
     res
       .status(error.status || 500)
-      .json({ error: error.message || 'Internal server error' });
+      .json({ message: error.message || "Internal server error" });
   }
 };
-
 // ------------------- LOGIN -------------------
 const userLogin = async (req, res) => {
   try {
