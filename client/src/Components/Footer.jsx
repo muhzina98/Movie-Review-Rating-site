@@ -31,7 +31,7 @@ const Footer = () => {
             </li>
             <li>
               <a
-                href="/login"
+                href="/movies"
                 className="hover:text-blue-600 dark:hover:text-blue-400 transition"
               >
                 Movies
@@ -39,7 +39,7 @@ const Footer = () => {
             </li>
             <li>
               <a
-                href="/login"
+                href="/reviews"
                 className="hover:text-blue-600 dark:hover:text-blue-400 transition"
               >
                 Reviews
@@ -56,24 +56,46 @@ const Footer = () => {
           </ul>
         </div>
 
+        {/* Social Links */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             Connect With Us
           </h3>
           <div className="flex space-x-4 mb-4">
-            <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">
+            <a
+              href="https://www.facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 dark:hover:text-blue-400"
+            >
               <Facebook size={22} />
             </a>
-            <a href="#" className="hover:text-pink-600 dark:hover:text-pink-400">
+            <a
+              href="https://www.instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-pink-600 dark:hover:text-pink-400"
+            >
               <Instagram size={22} />
             </a>
-            <a href="#" className="hover:text-sky-600 dark:hover:text-sky-400">
+            <a
+              href="https://www.twitter.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-sky-600 dark:hover:text-sky-400"
+            >
               <Twitter size={22} />
             </a>
-            <a href="#" className="hover:text-red-600 dark:hover:text-red-400">
+            <a
+              href="https://www.youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-red-600 dark:hover:text-red-400"
+            >
               <Youtube size={22} />
             </a>
           </div>
+
           <p className="text-sm">Email: support@moviemark.com</p>
           <p className="text-sm">Phone: +91 98765 43210</p>
         </div>
