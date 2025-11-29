@@ -37,6 +37,7 @@ const RegisterPage = () => {
     fd.append("name", form.name);
     fd.append("email", form.email);
     fd.append("password", form.password);
+    fd.append("confirmPassword", form.confirmPassword);
     if (form.avathar) fd.append("avathar", form.avathar);
 
     try {
