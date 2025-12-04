@@ -36,7 +36,7 @@ const ReviewSection = ({ movieId }) => {
     if (!user) return;
 
     api
-      .get(`/user/reviews/${movieId}`) // 🔥 FIXED
+      .get(`/user/reviews/${movieId}`) 
       .then((res) => setReviews(res.data.reviews))
       .catch((err) => console.log(err));
   }, [movieId, user]);
@@ -52,7 +52,7 @@ const ReviewSection = ({ movieId }) => {
     }
 
     try {
-      await api.post("/user/addReview", { movieId, rating, comment: text }); // 🔥 FIXED
+      await api.post("/user/addReview", { movieId, rating, comment: text });
 
       setText("");
       setRating(5);
@@ -77,7 +77,7 @@ const ReviewSection = ({ movieId }) => {
   const handleUpdateReview = async (reviewId) => {
     try {
       const res = await api.patch(
-        `/user/updateReview/${reviewId}`, // 🔥 FIXED
+        `/user/updateReview/${reviewId}`, 
         { rating: editRating, comment: editText }
       );
 
@@ -142,7 +142,7 @@ const ReviewSection = ({ movieId }) => {
             <div key={r._id} className="bg-white dark:bg-gray-700 p-4 rounded-xl">
               
               {editMode === r._id ? (
-                // ⭐ EDIT MODE
+                //  EDIT MODE
                 <div className="space-y-2">
                   <textarea
                     value={editText}
@@ -168,7 +168,7 @@ const ReviewSection = ({ movieId }) => {
                   </div>
                 </div>
               ) : (
-                // ⭐ NORMAL VIEW
+                //  NORMAL VIEW
                 <>
                   <div className="text-sm flex items-center gap-2">
                     <b>{r.author?.name || "Anonymous"}</b>
@@ -198,3 +198,8 @@ const ReviewSection = ({ movieId }) => {
 };
 
 export default ReviewSection;
+
+
+
+
+ 

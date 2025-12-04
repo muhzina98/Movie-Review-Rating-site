@@ -6,7 +6,7 @@ const createToken = require('../utils/generateToken');
 const updateMovieStats = require('../helpers/updateMovieStats');
 const { cloudinaryInstances } = require('../config/cloudinary');
 
-const isProd = process.env.NODE_ENV === "production";
+const isProd = process.env.NODE_ENV === "PRODUCTION";
 
 function cookieOptions() {
   return {
@@ -27,35 +27,35 @@ const userRegister = async (req, res) => {
 
     const { name, email, password, confirmPassword } = req.body || {};
 
-    // 🔥 Validate required fields
+    //  Validate required fields
     if (!name || !email || !password || !confirmPassword) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // 🔥 Email validation
+    //  Email validation
     if (!isValidEmail(email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    // 🔥 Password length check
+    //  Password length check
     if (password.length < 6) {
       return res
         .status(400)
         .json({ message: "Password must be at least 6 characters" });
     }
 
-    // 🔥 Confirm password match
+    //  Confirm password match
     if (password !== confirmPassword) {
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
-    // 🔥 Check if email already exists
+    //  Check if email already exists
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // 🔥 Upload avatar if provided
+    //  Upload avatar if provided
     let avatarUrl = undefined;
     if (req.file) {
       const cloudinaryResponse = await cloudinaryInstances.uploader.upload(
@@ -64,11 +64,11 @@ const userRegister = async (req, res) => {
       avatarUrl = cloudinaryResponse.secure_url;
     }
 
-    // 🔥 Encrypt password
+    //  Encrypt password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 🔥 Assign role if email matches admin
+    //  Assign role if email matches admin
     const role = ADMIN_EMAILS.includes(email.toLowerCase()) ? "admin" : "user";
 
     const newUser = new User({

@@ -16,7 +16,6 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // 🔥 FIXED — NO BASE_URL, NO withCredentials
       const res = await api.post("/user/login", form);
 
       setMessage(res.data?.message || "Login successful!");

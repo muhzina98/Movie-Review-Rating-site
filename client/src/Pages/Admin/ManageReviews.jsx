@@ -31,7 +31,7 @@ const ManageReviews = () => {
   const handleDelete = async (reviewId) => {
     if (confirm("Are you sure you want to delete this review?")) {
       try {
-        await api.delete(`/admin/deletereview/${reviewId}`); // 🔥 FIXED
+        await api.delete(`/admin/deletereview/${reviewId}`); 
         alert("Review deleted!");
         fetchReviews(selectedMovie);
       } catch (error) {

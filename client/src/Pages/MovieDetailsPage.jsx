@@ -16,7 +16,7 @@ const MovieDetailsPage = () => {
   // Fetch movie details
   useEffect(() => {
     api
-      .get(`/movie/${id}`)  // 🔥 FIXED — NO BASE_URL and no withCredentials
+      .get(`/movie/${id}`)  
       .then((res) => {
         // Backend returns either movie or { movie: {...} }
         const movieData = res.data.movie || res.data;

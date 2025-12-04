@@ -28,7 +28,7 @@ const ManageMovies = () => {
   // Fetch all admin movies
   const fetchMovies = async () => {
     try {
-      const res = await api.get("/admin/allmovies"); // 🔥 FIXED
+      const res = await api.get("/admin/allmovies"); 
       const data = res.data.movies || [];
       setMovies(data);
       setFilteredMovies(data);
@@ -134,7 +134,7 @@ const ManageMovies = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this movie?")) {
       try {
-        await api.delete(`/admin/deletemovie/${id}`); // 🔥 FIXED
+        await api.delete(`/admin/deletemovie/${id}`); 
         alert("🗑️ Movie deleted successfully!");
         fetchMovies();
       } catch (error) {

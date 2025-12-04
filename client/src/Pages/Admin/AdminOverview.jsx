@@ -9,7 +9,6 @@ const AdminOverview = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // 🔥 FIXED — no BASE_URL, no withCredentials
         const res = await api.get("/admin/stats");
 
         setStats(res.data.stats);
@@ -51,7 +50,7 @@ const AdminOverview = () => {
             key={title}
             className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 flex flex-col items-center justify-center transition hover:scale-105"
           >
-            <div
+            <div 
               className={`w-14 h-14 ${color} text-white rounded-full flex items-center justify-center mb-4`}
             >
               <Icon size={26} />

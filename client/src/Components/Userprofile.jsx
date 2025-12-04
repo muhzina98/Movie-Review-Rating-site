@@ -21,7 +21,7 @@ const UserProfile = () => {
       : user?.avathar ||
         "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
-  // 🔥 FIXED — Payment using SAME DOMAIN = Cookies attach!
+  //  —Payment using SAME DOMAIN = Cookies attach!
   const handlePrime = async () => {
     try {
       const res = await api.post("/payment/create-checkout-session", {});

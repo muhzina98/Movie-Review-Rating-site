@@ -24,7 +24,7 @@ export default function ManageUsers() {
   const togglePrime = async (u, val) => {
     try {
       const res = await api.patch(
-        `/admin/users/${u._id}/prime`,   // 🔥 FIXED
+        `/admin/users/${u._id}/prime`,   
         { isPrime: val }
       );
 
@@ -47,7 +47,7 @@ export default function ManageUsers() {
       <div className="space-y-4">
         {users.length === 0 && <p>No users yet</p>}
 
-        {users.map((u) => (
+        {users.map((u) => ( 
           <div
             key={u._id}
             className="flex items-center justify-between bg-white p-4 rounded shadow"

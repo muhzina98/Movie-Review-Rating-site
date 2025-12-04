@@ -33,7 +33,7 @@ function App() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // 🔥 Prevent showing old username during loading
+  //  Prevent showing old username during loading
   if (loading) {
     return <div className="h-screen bg-gray-100 dark:bg-gray-900"></div>;
   }
