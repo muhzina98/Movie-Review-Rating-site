@@ -35,7 +35,7 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
 
           {/* LOGO */}
-          <Link to="/" className="text-2xl font-bold dark:text-white">
+           <Link to="/" className="text-2xl font-bold dark:text-white">
             🎬 MovieMark
           </Link>
 
@@ -87,7 +87,7 @@ const Header = () => {
                     <LogOut size={16} /> Logout
                   </button>
                 </>
-              )}
+              )} v 
 
               <ThemeToggle theme={theme} setTheme={setTheme} />
             </div>

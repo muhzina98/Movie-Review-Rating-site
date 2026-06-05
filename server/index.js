@@ -2,7 +2,11 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const app = express();
-require("dotenv").config();
+require("dotenv").config({
+  path: path.join(__dirname, ".env"),
+});console.log("MONGODB_URL:", !!process.env.MONGODB_URL);
+console.log("STRIPE_SECRET_KEY:", !!process.env.STRIPE_SECRET_KEY);
+console.log("JWT_SECRET_KEY:", !!process.env.JWT_SECRET_KEY);
 
 const port = process.env.PORT || 3001;
 const connectDatabase = require("./config/dbConnection");

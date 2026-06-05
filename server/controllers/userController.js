@@ -77,14 +77,14 @@ const userRegister = async (req, res) => {
       password: hashedPassword,
       avathar: avatarUrl,
       role,
-    });
+    } );
 
     const savedUser = await newUser.save();
 
     return res.status(201).json({
       message: "User created successfully",
       user: {
-        _id: savedUser._id,
+        _id : savedUser._id,
         name: savedUser.name,
         email: savedUser.email,
         avathar: savedUser.avathar,
@@ -125,7 +125,7 @@ const userLogin = async (req, res) => {
     if (!passwordMatch) {
       return res.status(401).json({ error: 'Not a valid password' });
     }
-
+ 
     const userObject = userExist.toObject();
     delete userObject.password;
 
@@ -208,7 +208,7 @@ const updateUser = async (req, res) => {
     }
 
 
-    // 🟡 Only regenerate token if email changed
+    //  Only regenerate token if email changed
     if (email && email !== req.user.email) {
       const newToken = createToken(
         updatedUser._id,

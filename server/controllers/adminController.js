@@ -190,7 +190,7 @@ const updateMovie = async (req, res) => {
       }
     }
 
-    // 🎬 Upload new trailer (if provided)
+    //  Upload new trailer 
     if (trailerFile) {
       try {
         const uploadedTrailer = await cloudinaryInstances.uploader.upload(trailerFile.path, {
