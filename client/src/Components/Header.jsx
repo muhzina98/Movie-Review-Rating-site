@@ -87,7 +87,7 @@ const Header = () => {
                     <LogOut size={16} /> Logout
                   </button>
                 </>
-              )} v 
+              )} 
 
               <ThemeToggle theme={theme} setTheme={setTheme} />
             </div>
